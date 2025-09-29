@@ -6,7 +6,7 @@ import hist
 from hist import Hist
 import awkward as ak
 import numpy as np
-import utils
+from utils import utils
 
 class P2L1TAnalyzer(processor.ProcessorABC):
     def __init__(self, hist_config, cuts=None):
@@ -42,54 +42,68 @@ class P2L1TAnalyzer(processor.ProcessorABC):
         
         selected_obj = {}
 
-        pdg = 211
+        pdg = 130
+        #pdg = 211
 
         if self.cuts is not None:
             cut_mask = {}
             for typ in obj.keys():
-                cut_mask[typ] = self.cuts.cut_pt(obj[typ]) & self.cuts.cut_eta(obj[typ], 0, 1.4)
+                cut_mask[typ] = self.cuts.cut_pt(obj[typ], 5) & self.cuts.cut_eta(obj[typ], 3.0, 5.0)
+                #cut_mask[typ] = self.cuts.cut_pt(obj[typ], 5) & self.cuts.cut_eta(obj[typ], 2.5, 3.0)
+                #cut_mask[typ] = self.cuts.cut_pt(obj[typ], 5) & self.cuts.cut_eta(obj[typ], 1.5, 2.4)
+                #cut_mask[typ] = self.cuts.cut_pt(obj[typ], 5) & self.cuts.cut_eta(obj[typ], 0, 1.4)
                 
                 if typ == 'gen':
                     cut_mask[typ] = cut_mask[typ] & self.cuts.cut_pdgId(obj[typ], pdg)
-                #cut_mask[typ] = cut_mask[typ] & self.cuts.cut_pdgId(obj[typ], pdg)
+                #elif typ == 'pf' or typ == 'puppi':
+                #    cut_mask[typ] = cut_mask[typ] & self.cuts.cut_pdgId(obj[typ], pdg)
+                #    cut_mask[typ] = cut_mask[typ] & self.cuts.cut_notPdgId(obj[typ], pdg)
                 selected_obj[typ] = obj[typ][cut_mask[typ]]
         else:
             selected_obj[typ] = obj[typ]
 
         # gen-matching
-        selected_obj['matched_gen'] = utils.get_genMatched(selected_obj['gen'], selected_obj['pf'], typ='Gen')
-        selected_obj['matched_pf'] = utils.get_genMatched(selected_obj['gen'], selected_obj['pf'], typ='Reco')
-        selected_obj['matched_puppi'] = utils.get_genMatched(selected_obj['gen'], selected_obj['puppi'], typ='Reco')
+        selected_obj['matched_gen'], selected_obj['nonMatched_gen'] = utils.get_genMatched(selected_obj['gen'], selected_obj['pf'], typ='Gen')
+        selected_obj['matched_pf'], selected_obj['nonMatched_pf'] = utils.get_genMatched(selected_obj['gen'], selected_obj['pf'], typ='Reco')
+        selected_obj['matched_puppi'], selected_obj['nonMatched_puppi'] = utils.get_genMatched(selected_obj['gen'], selected_obj['puppi'], typ='Reco')
         
         # calculate some quantities here
         multiplicity = {}
         pdgId = {}
+        isGenMatched = {}
+        isReconstructed = {}
 
         for typ in selected_obj.keys():
             multiplicity[typ] = ak.num(selected_obj[typ].pt)
             pdgId[typ] = np.abs(ak.flatten(selected_obj[typ].pdgId))
-
+       
+        isGenMatched['pf'] = ak.num(selected_obj['matched_pf'].pt) / ak.num(selected_obj['pf'].pt)
+        isGenMatched['puppi'] = ak.num(selected_obj['matched_puppi'].pt) / ak.num(selected_obj['puppi'].pt)
+        isReconstructed['gen'] = ak.num(selected_obj['matched_gen'].pt)/ak.num(selected_obj['gen'].pt)
+        
         # Fill histogram
         for hname, hcfg in self.histos.items():
             var = hcfg['variable']
 
             for typ in selected_obj.keys():
-                if typ not in hname:
+                cat = hname.split("_")[0] if not 'atched' in hname else f'{hname.split("_")[0]}_{hname.split("_")[1]}'
+                if typ != cat:
                     continue
 
                 if var == "multiplicity":
                     arr = multiplicity[typ]
                 elif var == "pdgId":
                     arr = pdgId[typ]
-                elif var == "isMatched":
-                    continue
-                elif var == "isReconstructed":
-                    continue
+                elif typ == "pf" and var == "isMatched":
+                    arr == isGenMatched['pf']
+                elif typ == "puppi" and var == "isMatched":
+                    arr == isGenMatched['puppi'] 
+                elif typ == "gen" and var == "isReconstructed":
+                    arr == isReconstructed['gen'] 
                 else:
                     arr = ak.flatten(getattr(selected_obj[typ], var))
 
                 out[hname].fill(**{var: arr})
-                #print(f'Filling histogram: {hname}')
 
         return out
 

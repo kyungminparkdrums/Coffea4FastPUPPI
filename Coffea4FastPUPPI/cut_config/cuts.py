@@ -1,6 +1,6 @@
 import numpy as np
 
-def cut_pt(obj, pt_thres = 5):
+def cut_pt(obj, pt_thres):
     cut = obj.pt > pt_thres
 
     return cut
@@ -15,5 +15,10 @@ def cut_eta(obj, eta_min, eta_max):
 
 def cut_pdgId(obj, pdgId):
     cut = np.abs(obj.pdgId) == pdgId
+
+    return cut
+
+def cut_notPdgId(obj, pdgId):
+    cut = np.abs(obj.pdgId) != pdgId
 
     return cut

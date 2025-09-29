@@ -17,16 +17,28 @@ pf_phi:
   range: [-3.5, 3.5]
   xlabel: "phi"
 
+pf_caloEta:
+  variable: caloEta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "caloEta"
+
+pf_caloPhi:
+  variable: caloPhi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "caloPhi"
+
 pf_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 pf_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 pf_puppiWeight:
@@ -41,6 +53,24 @@ pf_pdgId:
   range: [0, 250]
   xlabel: "pdg ID"
 
+pf_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+pf_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+pf_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
 pf_multiplicity:
   variable: multiplicity
   bins: 1000
@@ -49,8 +79,8 @@ pf_multiplicity:
 
 pf_isMatched:
   variable: isMatched
-  bins: 2
-  range: [0,1]
+  bins: 50
+  range: [0,1.1]
   xlabel: "isMatched"
 
 # pf: genMatched
@@ -72,16 +102,28 @@ matched_pf_phi:
   range: [-3.5, 3.5]
   xlabel: "phi"
 
+matched_pf_caloEta:
+  variable: caloEta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "caloEta"
+
+matched_pf_caloPhi:
+  variable: caloPhi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "caloPhi"
+
 matched_pf_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 matched_pf_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 matched_pf_puppiWeight:
@@ -96,7 +138,104 @@ matched_pf_pdgId:
   range: [0, 250]
   xlabel: "pdg ID"
 
+matched_pf_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+matched_pf_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+matched_pf_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
 matched_pf_multiplicity:
+  variable: multiplicity
+  bins: 1000
+  range: [0, 1000]
+  xlabel: "multiplicity"
+
+# pf: non-genMatched
+nonMatched_pf_pt:
+  variable: pt
+  bins: 50
+  range: [0, 200]
+  xlabel: "pT [GeV]"
+
+nonMatched_pf_eta:
+  variable: eta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "eta"
+
+nonMatched_pf_phi:
+  variable: phi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "phi"
+
+nonMatched_pf_caloEta:
+  variable: caloEta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "caloEta"
+
+nonMatched_pf_caloPhi:
+  variable: caloPhi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "caloPhi"
+
+nonMatched_pf_mass:
+  variable: mass
+  bins: 100
+  range: [0, 2]
+  xlabel: "mass"
+
+nonMatched_pf_charge:
+  variable: charge
+  bins: 3
+  range: [-1, 2]
+  xlabel: "charge"
+
+nonMatched_pf_puppiWeight:
+  variable: puppiWeight
+  bins: 50
+  range: [0, 1]
+  xlabel: "puppiWeight"
+
+nonMatched_pf_pdgId:
+  variable: pdgId
+  bins: 250
+  range: [0, 250]
+  xlabel: "pdg ID"
+
+nonMatched_pf_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+nonMatched_pf_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+nonMatched_pf_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
+nonMatched_pf_multiplicity:
   variable: multiplicity
   bins: 1000
   range: [0, 1000]
@@ -124,13 +263,13 @@ puppi_phi:
 puppi_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 puppi_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 puppi_puppiWeight:
@@ -145,6 +284,24 @@ puppi_pdgId:
   range: [0, 250]
   xlabel: "pdg ID"
 
+puppi_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+puppi_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+puppi_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
 puppi_multiplicity:
   variable: multiplicity
   bins: 1000
@@ -153,8 +310,8 @@ puppi_multiplicity:
 
 puppi_isMatched:
   variable: isMatched
-  bins: 2
-  range: [0,1]
+  bins: 50
+  range: [0,1.1]
   xlabel: "isMatched"
 
 # PUPPI - matched
@@ -179,13 +336,13 @@ matched_puppi_phi:
 matched_puppi_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 matched_puppi_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 matched_puppi_puppiWeight:
@@ -200,7 +357,92 @@ matched_puppi_pdgId:
   range: [0, 250]
   xlabel: "pdg ID"
 
+matched_puppi_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+matched_puppi_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+matched_puppi_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
 matched_puppi_multiplicity:
+  variable: multiplicity
+  bins: 1000
+  range: [0, 1000]
+  xlabel: "multiplicity"
+
+# PUPPI - non matched
+nonMatched_puppi_pt:
+  variable: pt
+  bins: 50
+  range: [0, 200]
+  xlabel: "pT [GeV]"
+
+nonMatched_puppi_eta:
+  variable: eta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "eta"
+
+nonMatched_puppi_phi:
+  variable: phi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "phi"
+
+nonMatched_puppi_mass:
+  variable: mass
+  bins: 100
+  range: [0, 2]
+  xlabel: "mass"
+
+nonMatched_puppi_charge:
+  variable: charge
+  bins: 3
+  range: [-1, 2]
+  xlabel: "charge"
+
+nonMatched_puppi_puppiWeight:
+  variable: puppiWeight
+  bins: 50
+  range: [0, 1]
+  xlabel: "puppiWeight"
+
+nonMatched_puppi_pdgId:
+  variable: pdgId
+  bins: 250
+  range: [0, 250]
+  xlabel: "pdg ID"
+
+nonMatched_puppi_dxy:
+  variable: dxy
+  bins: 500
+  range: [0, 1]
+  xlabel: "dxy"
+
+nonMatched_puppi_z0:
+  variable: z0
+  bins: 100
+  range: [-10, 10]
+  xlabel: "z0"
+
+nonMatched_puppi_hwTkQuality:
+  variable: hwTkQuality
+  bins: 21
+  range: [0,20]
+  xlabel: "hwTkQuality"
+
+nonMatched_puppi_multiplicity:
   variable: multiplicity
   bins: 1000
   range: [0, 1000]
@@ -228,13 +470,13 @@ gen_phi:
 gen_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 gen_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 gen_pdgId:
@@ -242,6 +484,24 @@ gen_pdgId:
   bins: 250
   range: [0, 250]
   xlabel: "pdg ID"
+
+gen_vz:
+  variable: vz
+  bins: 100
+  range: [-10, 10]
+  xlabel: "vz"
+
+gen_status:
+  variable: status
+  bins: 20
+  range: [-10, 10]
+  xlabel: "status"
+
+gen_prompt:
+  variable: prompt
+  bins: 2
+  range: [0,2]
+  xlabel: "prompt"
 
 gen_multiplicity:
   variable: multiplicity
@@ -251,8 +511,8 @@ gen_multiplicity:
 
 gen_isReconstructed:
   variable: isReconstructed
-  bins: 2
-  range: [0,1]
+  bins: 50
+  range: [0,1.1]
   xlabel: "isReconstructed"
 
 # gen: reconstructed
@@ -277,13 +537,13 @@ matched_gen_phi:
 matched_gen_mass:
   variable: mass
   bins: 100
-  range: [0, 50]
+  range: [0, 2]
   xlabel: "mass"
 
 matched_gen_charge:
   variable: charge
-  bins: 2
-  range: [-1, 1]
+  bins: 3
+  range: [-1, 2]
   xlabel: "charge"
 
 matched_gen_pdgId:
@@ -292,7 +552,86 @@ matched_gen_pdgId:
   range: [0, 250]
   xlabel: "pdg ID"
 
+matched_gen_vz:
+  variable: vz
+  bins: 100
+  range: [-10, 10]
+  xlabel: "vz"
+
+matched_gen_status:
+  variable: status
+  bins: 21
+  range: [-10, 10]
+  xlabel: "status"
+
+matched_gen_prompt:
+  variable: prompt
+  bins: 2
+  range: [0,2]
+  xlabel: "prompt"
+
 matched_gen_multiplicity:
+  variable: multiplicity
+  bins: 1000
+  range: [0, 1000]
+  xlabel: "multiplicity"
+
+# gen: not reconstructed
+nonMatched_gen_pt:
+  variable: pt
+  bins: 50
+  range: [0, 200]
+  xlabel: "pT [GeV]"
+
+nonMatched_gen_eta:
+  variable: eta
+  bins: 50
+  range: [-5, 5]
+  xlabel: "eta"
+
+nonMatched_gen_phi:
+  variable: phi
+  bins: 50
+  range: [-3.5, 3.5]
+  xlabel: "phi"
+
+nonMatched_gen_mass:
+  variable: mass
+  bins: 100
+  range: [0, 2]
+  xlabel: "mass"
+
+nonMatched_gen_charge:
+  variable: charge
+  bins: 3
+  range: [-1, 2]
+  xlabel: "charge"
+
+nonMatched_gen_pdgId:
+  variable: pdgId
+  bins: 250
+  range: [0, 250]
+  xlabel: "pdg ID"
+
+nonMatched_gen_vz:
+  variable: vz
+  bins: 100
+  range: [-10, 10]
+  xlabel: "vz"
+
+nonMatched_gen_status:
+  variable: status
+  bins: 21
+  range: [-10, 10]
+  xlabel: "status"
+
+nonMatched_gen_prompt:
+  variable: prompt
+  bins: 2
+  range: [0,2]
+  xlabel: "prompt"
+
+nonMatched_gen_multiplicity:
   variable: multiplicity
   bins: 1000
   range: [0, 1000]

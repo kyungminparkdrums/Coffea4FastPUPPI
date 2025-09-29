@@ -12,16 +12,28 @@ Customize
 """
 # output setting
 outdir = 'coffea'
-outname = 'baseline'
+
+#etaRegion = 'barrel'
+#etaRegion = 'endcap'
+#etaRegion = 'endcapNoTk'
+etaRegion = 'hf'
+
+#outname = f'AR2025_pt5_{etaRegion}_genPdgId211'
+#outname = f'AR2025_pt5_{etaRegion}_genPdgId211_recoPdgId211'
+#outname = f'AR2025_pt5_{etaRegion}_genPdgId211_recoPdgIdNot211'
+
+#outname = f'AR2025_pt5_{etaRegion}_genPdgId130'
+#outname = f'AR2025_pt5_{etaRegion}_genPdgId130_recoPdgId130'
+outname = f'AR2025_pt5_{etaRegion}_genPdgId130_recoPdgIdNot130'
 
 # histo 
 with open("histo_config/histo.yaml") as f:
     hist_config = yaml.safe_load(f)
 
 # files
-root_dir = "/eos/cms/store/group/cmst3/group/l1tr/kypark/BESTPUPPI/Baseline/TT_PU200/FP/140Xv0C1/"
+root_dir = "/eos/cms/store/group/cmst3/group/l1tr/kypark/BESTPUPPI/AR2025_PFstudies/TT_PU200/FP/140Xv0C1/"
 files = {
-    "Baseline": {
+    "files": {
         "files": glob.glob(os.path.join(root_dir, "perfNano*.root"))
     }
 }
@@ -29,7 +41,7 @@ files = {
 # coffea setting
 nWorkers = 4
 
-print(f"Input file directory: {root_dir} ({len(files['Baseline']['files'])} files)")
+print(f"Input file directory: {root_dir} ({len(files['files']['files'])} files)")
 
 """
 Analyzer, from processor
