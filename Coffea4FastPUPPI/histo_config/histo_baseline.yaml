@@ -1,0 +1,593 @@
+pf_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: pf
+
+pf_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: pf
+
+pf_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: pf
+
+pf_caloEta:
+  variables: [caloEta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "caloEta"}]
+  object: pf
+
+pf_caloPhi:
+  variables: [caloPhi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "caloPhi"}]
+  object: pf
+
+pf_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: pf
+
+pf_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: pf
+
+pf_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: pf
+
+pf_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: pf
+
+pf_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: pf
+
+pf_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: pf
+
+pf_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: pf
+
+pf_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: pf
+
+pf_puppiWeight_vs_pt:
+  variables: [puppiWeight, pt]
+  axes: [
+    {type: "Regular", bins: 50, range: [0, 1.1], name: "puppiWeight", label: "puppiWeight"},
+    {type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}
+  ]
+  object: pf
+
+matched_pf_resolution:
+  variables: [resolution]
+  axes: [{type: "Regular", bins: 50, range: [0, 30], label: "resolution"}]
+  object: matched_pf
+
+matched_pf_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: matched_pf
+
+matched_pf_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: matched_pf
+
+matched_pf_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: matched_pf
+
+matched_pf_caloEta:
+  variables: [caloEta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "caloEta"}]
+  object: matched_pf
+
+matched_pf_caloPhi:
+  variables: [caloPhi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "caloPhi"}]
+  object: matched_pf
+
+matched_pf_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: matched_pf
+
+matched_pf_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: matched_pf
+
+matched_pf_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: matched_pf
+
+matched_pf_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: matched_pf
+
+matched_pf_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: matched_pf
+
+matched_pf_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: matched_pf
+
+matched_pf_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: matched_pf
+
+matched_pf_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: matched_pf
+
+matched_pfTrue_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: matched_pfTrue
+
+matched_pfTrue_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: matched_pfTrue
+
+matched_pfTrue_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: matched_pfTrue
+
+matched_pfTrue_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: matched_pfTrue
+
+matched_pfTrue_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: matched_pfTrue
+
+matched_pfTrue_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: matched_pfTrue
+
+nonMatched_pf_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: nonMatched_pf
+
+nonMatched_pf_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: nonMatched_pf
+
+nonMatched_pf_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: nonMatched_pf
+
+nonMatched_pf_caloEta:
+  variables: [caloEta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "caloEta"}]
+  object: nonMatched_pf
+
+nonMatched_pf_caloPhi:
+  variables: [caloPhi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "caloPhi"}]
+  object: nonMatched_pf
+
+nonMatched_pf_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: nonMatched_pf
+
+nonMatched_pf_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: nonMatched_pf
+
+nonMatched_pf_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: nonMatched_pf
+
+nonMatched_pf_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: nonMatched_pf
+
+nonMatched_pf_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: nonMatched_pf
+
+nonMatched_pf_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: nonMatched_pf
+
+nonMatched_pf_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: nonMatched_pf
+
+nonMatched_pf_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: nonMatched_pf
+
+puppi_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: puppi
+
+puppi_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: puppi
+
+puppi_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: puppi
+
+puppi_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: puppi
+
+puppi_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: puppi
+
+puppi_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: puppi
+
+puppi_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: puppi
+
+puppi_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: puppi
+
+puppi_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: puppi
+
+puppi_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: puppi
+
+puppi_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: puppi
+
+matched_puppi_resolution:
+  variables: [resolution]
+  axes: [{type: "Regular", bins: 50, range: [0, 30], label: "resolution"}]
+  object: matched_puppi
+
+matched_puppi_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: matched_puppi
+
+matched_puppi_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: matched_puppi
+
+matched_puppi_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: matched_puppi
+
+matched_puppi_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: matched_puppi
+
+matched_puppi_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: matched_puppi
+
+matched_puppi_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: matched_puppi
+
+matched_puppi_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: matched_puppi
+
+matched_puppi_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: matched_puppi
+
+matched_puppi_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: matched_puppi
+
+matched_puppi_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: matched_puppi
+
+matched_puppi_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: matched_puppi
+
+matched_puppiTrue_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: matched_puppiTrue
+
+matched_puppiTrue_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: matched_puppiTrue
+
+matched_puppiTrue_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: matched_puppiTrue
+
+matched_puppiTrue_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: matched_puppiTrue
+
+matched_puppiTrue_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: matched_puppiTrue
+
+matched_puppiTrue_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: matched_puppiTrue
+
+nonMatched_puppi_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_puppiWeight:
+  variables: [puppiWeight]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "puppiWeight"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_dxy:
+  variables: [dxy]
+  axes: [{type: "Regular", bins: 500, range: [0, 1], label: "dxy"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_z0:
+  variables: [z0]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "z0"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_hwTkQuality:
+  variables: [hwTkQuality]
+  axes: [{type: "Regular", bins: 21, range: [0, 20], label: "hwTkQuality"}]
+  object: nonMatched_puppi
+
+nonMatched_puppi_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: nonMatched_puppi
+
+gen_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: gen
+
+gen_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: gen
+
+gen_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: gen
+
+gen_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: gen
+
+gen_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: gen
+
+gen_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: gen
+
+gen_vz:
+  variables: [vz]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "vz"}]
+  object: gen
+
+gen_status:
+  variables: [status]
+  axes: [{type: "Regular", bins: 20, range: [-10, 10], label: "status"}]
+  object: gen
+
+gen_prompt:
+  variables: [prompt]
+  axes: [{type: "Regular", bins: 2, range: [0, 2], label: "prompt"}]
+  object: gen
+
+gen_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: gen
+
+gen_isReconstructed:
+  variables: [isReconstructed]
+  axes: [{type: "Regular", bins: 50, range: [0, 1.1], label: "isReconstructed"}]
+  object: gen
+
+matched_gen_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: matched_gen
+
+matched_gen_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: matched_gen
+
+matched_gen_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: matched_gen
+
+matched_gen_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: matched_gen
+
+matched_gen_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: matched_gen
+
+matched_gen_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: matched_gen
+
+matched_gen_vz:
+  variables: [vz]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "vz"}]
+  object: matched_gen
+
+matched_gen_status:
+  variables: [status]
+  axes: [{type: "Regular", bins: 21, range: [-10, 10], label: "status"}]
+  object: matched_gen
+
+matched_gen_prompt:
+  variables: [prompt]
+  axes: [{type: "Regular", bins: 2, range: [0, 2], label: "prompt"}]
+  object: matched_gen
+
+matched_gen_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: matched_gen
+
+nonMatched_gen_pt:
+  variables: [pt]
+  axes: [{type: "Variable", name: "pt", edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200], label: "pT [GeV]"}]
+  object: nonMatched_gen
+
+nonMatched_gen_eta:
+  variables: [eta]
+  axes: [{type: "Regular", bins: 50, range: [-5, 5], label: "eta"}]
+  object: nonMatched_gen
+
+nonMatched_gen_phi:
+  variables: [phi]
+  axes: [{type: "Regular", bins: 50, range: [-3.5, 3.5], label: "phi"}]
+  object: nonMatched_gen
+
+nonMatched_gen_mass:
+  variables: [mass]
+  axes: [{type: "Regular", bins: 100, range: [0, 2], label: "mass"}]
+  object: nonMatched_gen
+
+nonMatched_gen_charge:
+  variables: [charge]
+  axes: [{type: "Regular", bins: 3, range: [-1, 2], name: "charge", label: "charge"}]
+  object: nonMatched_gen
+
+nonMatched_gen_pdgId:
+  variables: [pdgId]
+  axes: [{type: "Regular", bins: 250, range: [0, 250], label: "pdg ID"}]
+  object: nonMatched_gen
+
+nonMatched_gen_vz:
+  variables: [vz]
+  axes: [{type: "Regular", bins: 100, range: [-10, 10], label: "vz"}]
+  object: nonMatched_gen
+
+nonMatched_gen_status:
+  variables: [status]
+  axes: [{type: "Regular", bins: 21, range: [-10, 10], label: "status"}]
+  object: nonMatched_gen
+
+nonMatched_gen_prompt:
+  variables: [prompt]
+  axes: [{type: "Regular", bins: 2, range: [0, 2], label: "prompt"}]
+  object: nonMatched_gen
+
+nonMatched_gen_multiplicity:
+  variables: [multiplicity]
+  axes: [{type: "Regular", bins: 1000, range: [0, 1000], label: "multiplicity"}]
+  object: nonMatched_gen
+
