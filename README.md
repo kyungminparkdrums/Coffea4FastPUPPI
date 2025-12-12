@@ -14,7 +14,7 @@ git cms-addpkg L1Trigger/VertexFinder
 
 git cms-checkout-topic -u friti:new_G_branches_and_nnvtx_on
 
-git clone git@github.com:kyungminparkdrums/FastPUPPI.git -b 151_extraVars
+git clone git@github.com:elfontan/FastPUPPI.git -b puppiML_target
 ```
 
 It includes 
