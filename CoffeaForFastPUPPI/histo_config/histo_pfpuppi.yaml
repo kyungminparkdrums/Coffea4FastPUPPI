@@ -1,0 +1,132 @@
+defaults:
+  pt_edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200]
+  eta_range: [-5, 5]
+  phi_range: [-3.5, 3.5]
+  mass_range: [0, 2]
+  puppi_range: [0, 1.1]
+  dxy_range: [0, 1]
+  z0_range: [-10, 10]
+  mult_range: [0, 500]
+
+objects: [pf, puppi, gen, matched_pf, nonMatched_pf, matched_puppi, nonMatched_puppi, matched_gen, nonMatched_gen]
+
+plots:
+  pt:
+    variables: [pt]
+    logy: true
+    axes:
+      - {type: Variable, name: pt, edges_ref: pt_edges, label: "pT"}
+
+  eta:
+    variables: [eta]
+    axes:
+      - {type: Regular, bins: 50, range_ref: eta_range, label: "eta"}
+
+  phi:
+    variables: [phi]
+    axes:
+      - {type: Regular, bins: 50, range_ref: phi_range, label: "phi"}
+
+  mass:
+    variables: [mass]
+    axes:
+      - {type: Regular, bins: 100, range_ref: mass_range, label: "mass"}
+
+  charge:
+    variables: [charge]
+    axes:
+      - {type: Regular, bins: 3, range: [-1, 2], label: "charge"}
+
+  pdgId:
+    variables: [pdgId]
+    axes:
+      - {type: Regular, bins: 250, range: [0, 250], label: "pdgId"}
+
+  multiplicity:
+    variables: [multiplicity]
+    axes:
+      - {type: Regular, bins: 500, range_ref: mult_range, label: "multiplicity"}
+
+per_object:
+  pf:
+    objects: [pf, matched_pf]
+    plots:
+      puppiWeight:
+        variables: [puppiWeight]
+        axes:
+          - {type: Regular, bins: 50, range_ref: puppi_range, label: "puppiWeight"}
+      
+      dxy:
+        variables: [dxy]
+        axes:
+          - {type: Regular, bins: 500, range_ref: dxy_range, label: "dxy"}
+
+      z0:
+        variables: [z0]
+        axes:
+          - {type: Regular, bins: 100, range_ref: z0_range, label: "z0"}
+
+      hwTkQuality:
+        variables: [hwTkQuality]
+        axes:
+          - {type: Regular, bins: 21, range: [0, 20], label: "hwTkQuality"}
+
+      puppiWeight_vs_pt:
+        variables: [puppiWeight, pt]
+        axes:
+          - {type: Regular, bins: 50, range_ref: puppi_range, name: puppiWeight, label: "puppiWeight"}
+          - {type: Variable, name: pt, edges_ref: pt_edges, label: "pT"}
+
+  puppi:
+    objects: [puppi, matched_puppi]
+    plots:
+      puppiWeight:
+        variables: [puppiWeight]
+        axes:
+          - {type: Regular, bins: 50, range_ref: puppi_range, label: "puppiWeight"}
+
+      dxy:
+        variables: [dxy]
+        axes:
+          - {type: Regular, bins: 500, range_ref: dxy_range, label: "dxy"}
+
+      z0:
+        variables: [z0]
+        axes:
+          - {type: Regular, bins: 100, range_ref: z0_range, label: "z0"}
+
+      hwTkQuality:
+        variables: [hwTkQuality]
+        axes:
+          - {type: Regular, bins: 21, range: [0, 20], label: "hwTkQuality"}
+
+special:
+  matched_pf_resolution:
+    object: matched_pf
+    variables: [resolution]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 3], label: "pT(reco)/pT(gen)"}
+
+  matched_puppi_resolution:
+    object: matched_puppi
+    variables: [resolution]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 3], label: "pT(reco)/pT(gen)"}
+
+  pf_isMatched:
+    object: pf
+    variables: [isMatched]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 1.1], label: "isMatched"}
+
+  puppi_isMatched:
+    object: puppi
+    variables: [isMatched]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 1.1], label: "isMatched"}
+
+  gen_isReconstructed:
+    object: gen
+    variables: [isReconstructed]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 1.1], label: "isReconstructed"}

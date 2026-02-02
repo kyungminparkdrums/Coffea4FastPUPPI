@@ -1,0 +1,164 @@
+defaults:
+  pt_range: [0, 100]
+  eta_range: [-5, 5]
+  phi_range: [-3.5, 3.5]
+  vz_range: [-10, 10]
+  mass_range: [0, 60]
+  mult_range_ele: [0, 50]
+  mult_range_pair: [0, 50]
+  delta_pt_range: [0, 200]
+  delta_phi_range: [0, 3.2]
+  delta_r_range: [0, 5]
+
+objects:
+  - tkele
+  - tkeleLead
+  - tkeleSub
+  - tkelePair
+  - best_tkeleLead
+  - best_tkeleSub
+
+plots:
+  pt:
+    variables: [pt]
+    logy: true
+    axes:
+      - {type: Regular, bins: 50, range_ref: pt_range, label: "pT"}
+
+  eta:
+    variables: [eta]
+    axes:
+      - {type: Regular, bins: 50, range_ref: eta_range, label: "eta"}
+
+  phi:
+    variables: [phi]
+    axes:
+      - {type: Regular, bins: 20, range_ref: phi_range, label: "phi"}
+
+  vz:
+    variables: [vz]
+    axes:
+      - {type: Regular, bins: 50, range_ref: vz_range, label: "vz"}
+
+  charge:
+    variables: [charge]
+    axes:
+      - {type: Regular, bins: 3, range: [-1.5, 1.5], label: "charge"}
+
+  multiplicity:
+    variables: [multiplicity]
+    axes:
+      - {type: Regular, bins: 50, range_ref: mult_range_ele, label: "multiplicity"}
+
+per_object:
+  tkele:
+    objects: [tkele, tkeleLead, tkeleSub, best_tkeleLead, best_tkeleSub]
+    plots:
+      idScore:
+        variables: [idScore]
+        axes:
+          - {type: Regular, bins: 50, range: [-1, 1], label: "idScore"}
+
+      hwQual:
+        variables: [hwQual]
+        axes:
+          - {type: Regular, bins: 16, range: [0, 16], label: "hwQual"}
+
+      pfIso:
+        variables: [pfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "pfIso"}
+
+      puppiIso:
+        variables: [puppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "puppiIso"}
+      
+      relPfIso:
+        variables: [relPfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "pfIso / pT"}
+
+      relPuppiIso:
+        variables: [relPuppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "puppiIso / pT"}
+
+  tkelePair:
+    objects: [tkelePair, best_tkelePair]
+    plots:
+      pt:
+        variables: [pt]
+        logy: true
+        axes:
+        - {type: Regular, bins: 50, range_ref: pt_range, label: "pT"}
+      
+      mass:
+        variables: [mass]
+        axes:
+          - {type: Regular, bins: 120, range_ref: mass_range, label: "m(ee) [GeV]"}
+
+      delta_eta:
+        variables: [delta_eta]
+        axes:
+          - {type: Regular, bins: 50, range_ref: eta_range, label: "|Δeta|"}
+
+      delta_phi:
+        variables: [delta_phi]
+        axes:
+          - {type: Regular, bins: 50, range_ref: delta_phi_range, label: "|Δphi|"}
+
+      delta_vz:
+        variables: [delta_vz]
+        axes:
+          - {type: Regular, bins: 50, range_ref: vz_range, label: "|Δvz|"}
+
+      delta_pt:
+        variables: [delta_pt]
+        axes:
+          - {type: Regular, bins: 100, range_ref: delta_pt_range, label: "|ΔpT|"}
+
+      delta_pt_over_pt:
+        variables: [delta_pt_over_pt]
+        axes:
+          - {type: Regular, bins: 80, range: [0, 2.0], label: "|ΔpT| / pT(ee)"}
+
+      delta_eta_over_eta:
+        variables: [delta_eta_over_eta]
+        axes:
+          - {type: Regular, bins: 80, range: [0, 5.0], label: "|Δeta| / |eta(ee)|"}
+
+      delta_phi_over_phi:
+        variables: [delta_phi_over_phi]
+        axes:
+          - {type: Regular, bins: 80, range: [0, 5.0], label: "|Δphi| / |phi(ee)|"}
+
+      pt_over_mass:
+        variables: [pt_over_mass]
+        axes:
+          - {type: Regular, bins: 80, range: [0, 20], label: "pT(ee)/m(ee)"}
+
+      charge_prod:
+        variables: [charge_prod]
+        axes:
+          - {type: Regular, bins: 3, range: [-1, 2], label: "q1*q2"}
+
+      eta_prod:
+        variables: [eta_prod]
+        axes:
+          - {type: Regular, bins: 50, range: [-5, 5], label: "eta1*eta2"}
+
+      max_relPfIso:
+        variables: [max_relPfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "max(PF relIso)"}
+
+      max_relPuppiIso:
+        variables: [max_relPuppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "max(PUPPI relIso)"}
+
+      delta_r:
+        variables: [delta_r]
+        axes:
+          - {type: Regular, bins: 60, range_ref: delta_r_range, label: "ΔR(ee)"}
