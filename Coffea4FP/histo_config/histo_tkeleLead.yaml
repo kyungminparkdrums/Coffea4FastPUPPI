@@ -1,0 +1,190 @@
+defaults:
+  pt_edges: [0, 5, 10, 15, 20, 30, 40, 60, 80, 100, 150, 200]
+  eta_range: [-5, 5]
+  phi_range: [-3.5, 3.5]
+  vz_range: [-10, 10]
+  mass_range: [0, 200]
+  mult_range_ele: [0, 10]
+  mult_range_pair: [0, 10]
+  delta_pt_range: [0, 200]
+  delta_phi_range: [0, 3.2]
+
+objects:
+  - genel
+  - matched_genel
+  - nonMatched_genel
+
+  - tkele
+  - matched_tkele
+  - nonMatched_tkele
+
+  - tkeleLead
+  - matched_tkeleLead
+  - nonMatched_tkeleLead
+
+  - tkeleSub
+  - matched_tkeleSub
+  - nonMatched_tkeleSub
+
+  - tkelePair
+  - matched_tkelePair
+  - nonMatched_tkelePair
+
+
+plots:
+  pt:
+    variables: [pt]
+    logy: true
+    axes:
+      - {type: Variable, name: pt, edges_ref: pt_edges, label: "pT"}
+
+  eta:
+    variables: [eta]
+    axes:
+      - {type: Regular, bins: 50, range_ref: eta_range, label: "eta"}
+
+  phi:
+    variables: [phi]
+    axes:
+      - {type: Regular, bins: 50, range_ref: phi_range, label: "phi"}
+
+  vz:
+    variables: [vz]
+    axes:
+      - {type: Regular, bins: 100, range_ref: vz_range, label: "vz"}
+
+  charge:
+    variables: [charge]
+    axes:
+      - {type: Regular, bins: 3, range: [-1, 2], label: "charge"}
+
+  multiplicity:
+    variables: [multiplicity]
+    axes:
+      - {type: Regular, bins: 10, range_ref: mult_range_ele, label: "multiplicity"}
+
+per_object:
+
+  genel:
+    objects: [genel, matched_genel, nonMatched_genel]
+    plots:
+      prompt:
+        variables: [prompt]
+        axes:
+          - {type: Regular, bins: 2, range: [0, 2], label: "prompt"}
+
+  tkele:
+    objects: [tkele, matched_tkele, nonMatched_tkele]
+    plots:
+      idScore:
+        variables: [idScore]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 1], label: "idScore"}
+
+      hwQual:
+        variables: [hwQual]
+        axes:
+          - {type: Regular, bins: 16, range: [0, 16], label: "hwQual"}
+
+      pfIso:
+        variables: [pfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "pfIso"}
+
+      puppiIso:
+        variables: [puppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "puppiIso"}
+
+  tkeleLead:
+    objects: [tkeleLead, matched_tkeleLead, nonMatched_tkeleLead]
+    plots:
+      idScore:
+        variables: [idScore]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 1], label: "idScore"}
+
+      hwQual:
+        variables: [hwQual]
+        axes:
+          - {type: Regular, bins: 16, range: [0, 16], label: "hwQual"}
+
+      pfIso:
+        variables: [pfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "pfIso"}
+
+      puppiIso:
+        variables: [puppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "puppiIso"}
+
+  tkeleSub:
+    objects: [tkeleSub, matched_tkeleSub, nonMatched_tkeleSub]
+    plots:
+      idScore:
+        variables: [idScore]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 1], label: "idScore"}
+
+      hwQual:
+        variables: [hwQual]
+        axes:
+          - {type: Regular, bins: 16, range: [0, 16], label: "hwQual"}
+
+      pfIso:
+        variables: [pfIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "pfIso"}
+
+      puppiIso:
+        variables: [puppiIso]
+        axes:
+          - {type: Regular, bins: 50, range: [0, 5], label: "puppiIso"}
+
+  tkelePair:
+    objects: [tkelePair, matched_tkelePair, nonMatched_tkelePair]
+    plots:
+      mass:
+        variables: [mass]
+        axes:
+          - {type: Regular, bins: 120, range_ref: mass_range, label: "m(ee) [GeV]"}
+
+      delta_eta:
+        variables: [delta_eta]
+        axes:
+          - {type: Regular, bins: 50, range_ref: eta_range, label: "|Δeta|"}
+
+      delta_phi:
+        variables: [delta_phi]
+        axes:
+          - {type: Regular, bins: 50, range_ref: delta_phi_range, label: "|Δphi|"}
+
+      delta_vz:
+        variables: [delta_vz]
+        axes:
+          - {type: Regular, bins: 100, range_ref: vz_range, label: "|Δvz|"}
+
+      delta_pt:
+        variables: [delta_pt]
+        axes:
+          - {type: Regular, bins: 120, range_ref: delta_pt_range, label: "|ΔpT|"}
+
+special:
+  tkele_isMatched:
+    object: tkele
+    variables: [isMatched]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 1.05], label: "purity"}
+
+  genel_isReconstructed:
+    object: genel
+    variables: [isReconstructed]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 1.05], label: "efficiency"}
+
+  matched_tkele_resolution:
+    object: matched_tkele
+    variables: [resolution]
+    axes:
+      - {type: Regular, bins: 50, range: [0, 3], label: "pT(reco)/pT(gen)"}
