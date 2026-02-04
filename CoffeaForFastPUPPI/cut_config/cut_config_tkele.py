@@ -39,7 +39,6 @@ def build_objects(events):
 
     obj["tkele"] = add_rel_iso(obj["tkele"])
 
-    # Gen exists only for signal
     if has_gen(events):
         obj["genel"] = events.GenEl
 
@@ -82,7 +81,6 @@ def build_pairs_from_electrons(ele):
     d_eta = eta1 - eta2
     d_phi = _delta_phi(phi1, phi2)
 
-    # massless approx
     m2 = 2.0 * pt1 * pt2 * (np.cosh(d_eta) - np.cos(d_phi))
     m2 = ak.where(m2 < 0, 0, m2)
     mass = np.sqrt(m2)
@@ -129,12 +127,10 @@ def build_pairs_from_electrons(ele):
     pt_over_mass = ak.where(mass > 0, pt / mass, 0.0)
     pairs = ak.with_field(pairs, pt_over_mass, "pt_over_mass")
 
-    # charge product (only if charge exists)
     if hasattr(l1, "charge") and hasattr(l2, "charge"):
         charge_prod = l1.charge * l2.charge
         pairs = ak.with_field(pairs, charge_prod, "charge_prod")
 
-    # eta product
     eta_prod = l1.eta * l2.eta
     pairs = ak.with_field(pairs, eta_prod, "eta_prod")
 
@@ -353,7 +349,7 @@ def cut_add_matching(events, obj):
     out["matched_tkeleTrue"] = matched_true_all[matched_mask]
 
     # ------------------------------------------------------------
-    # IMPORTANT: rebuild pairs from the UPDATED tkele (has fields!)
+    # rebuild pairs from the UPDATED tkele
     # ------------------------------------------------------------
     pair_all = build_pairs_from_electrons(out["tkele"])
     out["tkelePair_genMatchAware"] = pair_all  # optional debug; can omit
@@ -396,54 +392,6 @@ def cut_add_matching(events, obj):
 
     return out
 
-
-'''
-def cut_pair_os(obj, pair_key="tkelePair"):
-    out = dict(obj)
-    if pair_key not in out:
-        return out
-    p = out[pair_key]
-    if p is None or not hasattr(p, "charge_prod"):
-        return out
-    out[pair_key] = p[p.charge_prod < 0]
-    return out
-
-
-def cut_pair_dvz(obj, pair_key="tkelePair", dvz_max=1.0):
-    out = dict(obj)
-    if pair_key not in out:
-        return out
-    p = out[pair_key]
-    if p is None or not hasattr(p, "delta_vz"):
-        return out
-    out[pair_key] = p[p.delta_vz < dvz_max]
-    return out
-
-
-def cut_pair_max_reliso(obj, pair_key="tkelePair", max_relPfIso=None, max_relPuppiIso=None):
-    """
-    Apply one or both of:
-      max_relPfIso < X
-      max_relPuppiIso < Y
-    """
-    out = dict(obj)
-    if pair_key not in out:
-        return out
-    p = out[pair_key]
-    if p is None:
-        return out
-
-    mask = ak.ones_like(p.pt, dtype=bool)
-
-    if (max_relPfIso is not None) and hasattr(p, "max_relPfIso"):
-        mask = mask & (p.max_relPfIso < max_relPfIso)
-
-    if (max_relPuppiIso is not None) and hasattr(p, "max_relPuppiIso"):
-        mask = mask & (p.max_relPuppiIso < max_relPuppiIso)
-
-    out[pair_key] = p[mask]
-    return out
-'''
 
 def cut_pair_os(events, obj, pair_key="tkelePair"):
     out = dict(obj)
@@ -511,15 +459,6 @@ def pick_best_pair(pair_coll, score="min_dvz"):
     best = ak.firsts(best)     # [evt] option-record
     return best
 
-'''
-def cut_pick_best_pair(obj, pair_key="tkelePair", out_key="best_tkelePair", score="min_dvz"):
-    out = dict(obj)
-    if pair_key not in out:
-        return out
-    best_opt = pick_best_pair(out[pair_key], score=score)   # [evt] option-record
-    out[out_key] = _as_jagged01(best_opt)                   # [evt][0/1]
-    return out
-'''
 
 def add_pair_genmatch_flag(pairs):
     """
@@ -772,29 +711,6 @@ def cut_bestpair_leg_idscore(events, obj,
 # CUTFLOW
 # ============================================================
 
-'''
-CUTFLOW = [
-    ("cut0_None",            [cut_base]),
-    ("cut1_gen_twoPromptOS", [cut_evt_gen_two_prompt_os]),
-
-    (f"cut2_eta_{ETA_REGION}", [cut_eta]),
-    (f"cut3_pt_{int(PT_MIN)}", [cut_pt]),
-
-    ("cut4_buildPairs",      [cut_build_pairs]),
-    #("cut4b_genMatching",    [cut_add_matching]),
-
-    ("cut5_pairOS",          [lambda e,o: cut_pair_os(o, "tkelePair")]),
-    (f"cut6_pairDVZ_{PAIR_DVZ_MAX}", [lambda e,o: cut_pair_dvz(o, "tkelePair", PAIR_DVZ_MAX)]),
-    (f"cut7_pairIso",        [lambda e,o: cut_pair_max_reliso(o, "tkelePair", max_relPfIso=PAIR_MAX_RELPFISO)]),
-
-    ("cut8_pickBestPair",      [lambda e,o: cut_pick_best_pair(o, score="min_dvz")]),
-    ("cut8b_vetoNoBestPair",    [cut_veto_if_no_bestpair]),
-
-    ("cut9_bestPairEvtCuts", [lambda e,o: cut_event_on_bestpair(e, o, "best_tkelePair", ptmin=BESTPAIR_PTMIN)]),
-
-    ("cut10_genMatching",    [cut_add_matching]),
-]
-'''
 
 CUTFLOW = [
     ("cut0_None",            [cut_base]),
