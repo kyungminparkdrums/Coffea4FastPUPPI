@@ -40,11 +40,13 @@ def _delta_phi(a, b):
 def _delta_r(eta1, phi1, eta2, phi2):
     return np.sqrt((eta1 - eta2) ** 2 + _delta_phi(phi1, phi2) ** 2)
 
-def _eta(x, calo=False):
-    return x.caloeta if calo and hasattr(x, "caloeta") else x.eta
+def _eta(x, useCalo):
+    eta = ak.where(useCalo, x.caloeta, x.eta)
+    return eta
 
-def _phi(x, calo=False):
-    return x.calophi if calo and hasattr(x, "calophi") else x.phi
+def _phi(x, useCalo):
+    phi = ak.where(useCalo, x.calophi, x.phi)
+    return phi
 
 # ============================================================
 # Generic helpers
@@ -67,8 +69,6 @@ def _cone_counts_and_sums(
     others,
     dr,
     *,
-    centers_calo=False,
-    others_calo=False,
     exclude_self=False,
 ):
     """
@@ -86,6 +86,9 @@ def _cone_counts_and_sums(
     pairs = ak.cartesian({"c": centers, "o": others}, axis=1, nested=True)
     c, o = pairs.c, pairs.o
 
+    centers_calo = c.charge == 0 # use caloeta/calophi for neutrals only
+    others_calo  = o.charge  == 0
+
     drs = _delta_r(
         _eta(c, centers_calo), _phi(c, centers_calo),
         _eta(o, others_calo),  _phi(o, others_calo),
@@ -102,7 +105,7 @@ def _cone_counts_and_sums(
     s = ak.sum(ak.where(mask, o.pt, 0.0), axis=2)
     return n, s
 
-def _closest_pt(ref, others, dr, *, ref_calo=False, others_calo=False):
+def _closest_pt(ref, others, dr):
     """
     For each ref object, pt of closest 'others' within dr (else 0).
     Shapes:
@@ -115,6 +118,9 @@ def _closest_pt(ref, others, dr, *, ref_calo=False, others_calo=False):
         return None
     if not hasattr(ref, "pt") or not hasattr(others, "pt"):
         return None
+
+    ref_calo = ref.charge == 0 # use caloeta/calophi for neutrals only
+    others_calo  = others.charge  == 0
 
     reta = _eta(ref, ref_calo)
     rphi = _phi(ref, ref_calo)
@@ -199,12 +205,8 @@ def _add_neutral_cone_metrics(out, reco_key, gen):
 
         if gen_chg is not None and gen_neu is not None:
             n_chg, s_chg = _cone_counts_and_sums(reco_neu, gen_chg, dr, exclude_self=False)
-
-            # gen neutrals: use caloeta/calophi if present
-            n_neu, s_neu = _cone_counts_and_sums(
-                reco_neu, gen_neu, dr, exclude_self=False, others_calo=True
-            )
-            pt_closest = _closest_pt(reco_neu, gen_neu, dr, others_calo=True)
+            n_neu, s_neu = _cone_counts_and_sums(reco_neu, gen_neu, dr, exclude_self=False)
+            pt_closest = _closest_pt(reco_neu, gen_neu, dr)
         else:
             n_chg = ak.zeros_like(n_all)
             s_chg = ak.zeros_like(s_all)

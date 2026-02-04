@@ -32,9 +32,13 @@ def get_genMatched(gen, reco, typ="Gen", dr_cut=0.1):
         pairs = ak.cartesian([gen, reco], axis=1, nested=True)
         gen_cands, reco_cands = ak.unzip(pairs)
 
-        # caloeta, calophi for gen
-        dEta = gen_cands.caloeta - reco_cands.eta
-        dPhi = np.abs(gen_cands.calophi - reco_cands.phi)
+        # caloeta, calophi for gen neutral
+        useCalo = gen_cands.charge == 0 # use caloeta/calophi for neutrals only
+        eta_gen = ak.where(useCalo, gen_cands.caloeta, gen_cands.eta)
+        phi_gen = ak.where(useCalo, gen_cands.calophi, gen_cands.phi)
+
+        dEta = np.abs(eta_gen - reco_cands.eta)
+        dPhi = np.abs(phi_gen - reco_cands.phi)
         dPhi = ak.where(dPhi > np.pi, 2*np.pi - dPhi, dPhi)
         dR = np.sqrt(dEta**2 + dPhi**2)
 
@@ -52,9 +56,12 @@ def get_genMatched(gen, reco, typ="Gen", dr_cut=0.1):
         pairs = ak.cartesian([reco, gen], axis=1, nested=True)
         reco_cands, gen_cands = ak.unzip(pairs)
 
-        # caloeta, calophi for gen
-        dEta = reco_cands.eta - gen_cands.caloeta
-        dPhi = np.abs(reco_cands.phi - gen_cands.calophi)
+        useCalo = gen_cands.charge == 0 # use caloeta/calophi for neutrals only
+        eta_gen = ak.where(useCalo, gen_cands.caloeta, gen_cands.eta)
+        phi_gen = ak.where(useCalo, gen_cands.calophi, gen_cands.phi)
+
+        dEta = np.abs(reco_cands.eta - eta_gen)
+        dPhi = np.abs(reco_cands.phi - phi_gen)
         dPhi = ak.where(dPhi > np.pi, 2*np.pi - dPhi, dPhi)
         dR = np.sqrt(dEta**2 + dPhi**2)
 
@@ -87,8 +94,12 @@ def match_reco_to_gen_indices(gen, reco, dr_cut=0.1):
     pairs = ak.cartesian([reco, gen], axis=1, nested=True)
     reco_cands, gen_cands = ak.unzip(pairs)
 
-    deta = reco_cands.eta - gen_cands.eta
-    dphi = np.abs(reco_cands.phi - gen_cands.phi)
+    useCalo = gen_cands.charge == 0 # use caloeta/calophi for neutrals only
+    eta_gen = ak.where(useCalo, gen_cands.caloeta, gen_cands.eta)
+    phi_gen = ak.where(useCalo, gen_cands.calophi, gen_cands.phi)
+
+    deta = reco_cands.eta - eta_gen
+    dphi = np.abs(reco_cands.phi - phi_gen)
     dphi = ak.where(dphi > np.pi, 2*np.pi - dphi, dphi)
     dr = np.sqrt(deta**2 + dphi**2)
 
