@@ -81,6 +81,13 @@ Preliminary training on GNN (EdgeConv, GravNet) can be found in the `Training` r
     - To add more inputs, change this script (once the branches are available on the ntuples)
     - Some pre-processed inputs (1000 neutral cones per pt file) can be found here: `/eos/cms/store/group/cmst3/group/l1tr/kypark/puppi_training_neutral_dr0p3/`
 
+
+2.1 Dataset validation
+    ```
+    # Example
+    python3 validate_dataset.py   --input "/eos/cms/store/group/cmst3/group/l1tr/elfontan/PUPPIML/DEEPSets/graphs-dR0p3_removingRequirementAtLeast1PF/graphs_*pt" --output_dir /eos/user/e/elfontan/www/PHASE2L1_Correlator/ML_NeutralRegression/DATASET-Validation-AllData-dR0p3/ --n_examples 20
+    ```
+
 3. Run training
     ```
     # Example
