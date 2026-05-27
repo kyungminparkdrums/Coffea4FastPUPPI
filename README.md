@@ -84,9 +84,16 @@ Preliminary training on GNN (EdgeConv, GravNet) can be found in the `Training` r
     ```
     - To add more inputs, change this script (once the branches are available on the ntuples)
     - Likewise, you can turn off some inputs from the script
-    - Some pre-processed inputs (1000 neutral cones per pt file) can be found here: `/eos/cms/store/group/cmst3/group/l1tr/kypark/puppi_training_neutral_dr0p3/`
+    - Some pre-processed inputs (50000 neutral cones per pt file) with input feature metadata can be found here: `/eos/cms/store/group/cmst3/group/l1tr/kypark/puppi_training_neutral_dr0p3_includeTrk/`
 
-    2.1 Dataset validation     
+    2.1 Print some dataset
+    ```bash
+    # update the pt file path in the python script and run:
+    python3 print_dataset.py
+    ``` 
+    This will print out the current dataset metadata and the input feature for one neutral
+
+    2.2 Dataset validation (plot the input features from the dataset) 
     ```bash                           
     # Example                         
     python3 validate_dataset.py \
