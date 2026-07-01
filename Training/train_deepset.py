@@ -26,7 +26,7 @@ INPUT_FEATURES = [
     # "vz",
     "dxy",
     "z0",
-    "puppiWeight",
+    #"puppiWeight",
     # "idProbPu",
     # "idProbEm",
     # "idProbPi",
@@ -217,6 +217,19 @@ def build_feature_indices(dataset_feature_names, input_features):
 def select_features(data, feature_idx):
     data.x = data.x[:, feature_idx]
     return data
+
+
+def clone_data_cpu(data):
+    cloned = data.clone()
+    cloned.x = data.x.detach().cpu().clone()
+
+    for attr in ["y", "event_idx", "center_idx", "batch", "ptr"]:
+        if hasattr(data, attr):
+            value = getattr(data, attr)
+            if torch.is_tensor(value):
+                setattr(cloned, attr, value.detach().cpu().clone())
+
+    return cloned
 
 
 def global_shift_penalty(pred): # doesn't seem to work :( 
@@ -528,7 +541,7 @@ def permutation_feature_importance(
         if ibatch >= max_batches:
             break
 
-        cached_batches.append(data)
+        cached_batches.append(clone_data_cpu(data))
 
         data = data.to(device)
         data = select_features(data, feature_idx)
@@ -573,12 +586,12 @@ def permutation_feature_importance(
         perm_losses = []
 
         for data_cpu in cached_batches:
-            data = data_cpu.clone()
-            data.x = data.x.clone()
+            data = clone_data_cpu(data_cpu)
             data = select_features(data, feature_idx)
 
             perm = torch.randperm(data.x.size(0))
-            data.x[:, ifeat] = data.x[perm, ifeat]
+            permuted_values = data.x[perm, ifeat].clone()
+            data.x[:, ifeat] = permuted_values
 
             data = data.to(device)
 

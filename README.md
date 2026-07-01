@@ -97,11 +97,11 @@ Preliminary training on GNN (EdgeConv, GravNet) can be found in the `Training` r
     ```bash                           
     # Example                         
     python3 validate_dataset.py \
-      --input "/eos/cms/store/group/cmst3/group/l1tr/elfontan/PUPPIML/DEEPSets/graphs-dR0p3_removingRequirementAtLeast1PF/graphs_*pt" \
-      --output_dir /eos/user/e/elfontan/www/PHASE2L1_Correlator/ML_NeutralRegression/DATASET-Validation-AllData-dR0p3/ \                 
-      --n_examples 20                         
-    ```      
-
+      --input "./graphs/*.pt" \
+      --output_dir ./plots \                 
+      --max_files 10                         
+    ```
+    
 3. Run training
     ```
     # DeepSet (baseline for now)

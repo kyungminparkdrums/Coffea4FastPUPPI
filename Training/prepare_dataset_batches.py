@@ -64,7 +64,7 @@ FEATURE_NAMES = [
 
     "nnvtx",
     "vz",
-    "dxy",
+    "log_dxy",
     "z0",
 
     "puppiWeight",
@@ -110,7 +110,7 @@ BRANCHES = [
 TRACK_FEATURES = {
     "nnvtx",
     "vz",
-    "dxy",
+    "log_dxy",
     "z0",
 }
 
@@ -226,6 +226,8 @@ def main():
         slog_py = np.sign(py) * np.log(np.abs(py) + 1e-6)
 
         abs_eta = np.abs(etas)
+        dxy = ak.to_numpy(arrays[BRANCH_MAP["dxy"]][iev]).astype(np.float32)
+        log_dxy = np.log(np.abs(dxy) + 1e-6).astype(np.float32)
 
         hgcal_mask = ((abs_eta >= 1.5) & (abs_eta <= 2.4))
 
@@ -252,8 +254,8 @@ def main():
             "vz": lambda:
                 ak.to_numpy(arrays[BRANCH_MAP["vz"]][iev]).astype(np.float32),
 
-            "dxy": lambda:
-                ak.to_numpy(arrays[BRANCH_MAP["dxy"]][iev]).astype(np.float32),
+            "log_dxy": lambda:
+                log_dxy,
 
             "z0": lambda:
                 ak.to_numpy(arrays[BRANCH_MAP["z0"]][iev]).astype(np.float32),
