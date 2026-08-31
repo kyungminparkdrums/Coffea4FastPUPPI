@@ -154,64 +154,6 @@ def pytorch_dense_kwargs(fan_in):
     }
 
 
-@keras.utils.register_keras_serializable(package="MLPUPPI")
-class MaskedBatchNormalization(layers.Layer):
-    def __init__(self, momentum=0.9, epsilon=1e-5, **kwargs):
-        super().__init__(**kwargs)
-        self.momentum = momentum
-        self.epsilon = epsilon
-        self.bn = layers.BatchNormalization(momentum=momentum, epsilon=epsilon)
-
-    def call(self, inputs, training=None):
-        h, mask = inputs
-        shape = tf.shape(h)
-        batch_size, n_particles, hidden_dim = shape[0], shape[1], shape[2]
-
-        h_flat = tf.reshape(h, [batch_size * n_particles, hidden_dim])
-        mask_flat = tf.reshape(tf.cast(mask, tf.bool), [batch_size * n_particles])
-
-        h_valid = tf.boolean_mask(h_flat, mask_flat)
-        h_valid = self.bn(h_valid, training=training)
-
-        #valid_indices = tf.where(mask_flat)
-        valid_indices = tf.cast(tf.where(mask_flat), tf.int32)
-        h_flat = tf.scatter_nd(valid_indices, h_valid, tf.shape(h_flat))
-
-        return tf.reshape(h_flat, [batch_size, n_particles, hidden_dim])
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({"momentum": self.momentum, "epsilon": self.epsilon})
-        return config
-
-"""
-def build_model(nmax=NMAX, in_dim=len(INPUT_FEATURES), hidden_dim=64):
-    x_input = keras.Input(shape=(nmax, in_dim), name="x")
-    mask_input = keras.Input(shape=(nmax,), name="mask")
-
-    h = layers.Dense(hidden_dim, name="phi_dense1", **pytorch_dense_kwargs(in_dim))(x_input)
-    h = MaskedBatchNormalization(momentum=0.9, epsilon=1e-5, name="phi_bn1")([h, mask_input])
-    h = layers.ReLU(name="phi_relu1")(h)
-
-    h = layers.Dense(hidden_dim, name="phi_dense2", **pytorch_dense_kwargs(hidden_dim))(h)
-    h = MaskedBatchNormalization(momentum=0.9, epsilon=1e-5, name="phi_bn2")([h, mask_input])
-    h = layers.ReLU(name="phi_relu2")(h)
-
-    mask_f = layers.Lambda(lambda m: tf.expand_dims(tf.cast(m, tf.float32), axis=-1), name="mask_expand")(mask_input)
-    h_masked = layers.Multiply(name="mask_embedding")([h, mask_f])
-    h_sum = layers.Lambda(lambda z: tf.reduce_sum(z, axis=1), name="masked_sum_internal")(h_masked)
-    counts = layers.Lambda(lambda m: tf.maximum(tf.reduce_sum(m, axis=1), 1.0), name="valid_count")(mask_f)
-    h_mean = layers.Lambda(lambda z: z[0] / z[1], name="masked_mean")([h_sum, counts])
-
-    out = layers.Dense(hidden_dim, name="rho_dense1", **pytorch_dense_kwargs(hidden_dim))(h_mean)
-    out = layers.ReLU(name="rho_relu1")(out)
-    raw = layers.Dense(1, name="rho_output", **pytorch_dense_kwargs(hidden_dim))(out)
-    pred = layers.Activation("softplus", name="puppi_weight")(raw)
-
-    return keras.Model(inputs={"x": x_input, "mask": mask_input}, outputs=pred, name="PuppiDeepSetMeanOnly")
-"""
-
-
 def build_model(nmax=NMAX, in_dim=len(INPUT_FEATURES), hidden_dim=64):
     x_input = keras.Input(shape=(nmax, in_dim), name="x")
     mask_input = keras.Input(shape=(nmax,), dtype="bool", name="mask")
