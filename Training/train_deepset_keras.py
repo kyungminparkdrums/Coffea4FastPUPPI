@@ -16,7 +16,7 @@ from tensorflow.keras import layers
 from tqdm import tqdm
 
 
-NMAX = 32
+NMAX = 24
 
 INPUT_FEATURES = [
     "log_pt",
@@ -107,8 +107,12 @@ class BestPuppiDataset(Dataset):
 
         n = x.size(0)
 
+        #if n > NMAX:
+        #    raise RuntimeError(f"Graph has {n} particles, exceeds NMAX={NMAX}")
+
         if n > NMAX:
-            raise RuntimeError(f"Graph has {n} particles, exceeds NMAX={NMAX}")
+            x = x[:NMAX]
+            n = NMAX
 
         x_fixed = torch.zeros(NMAX, x.size(1), dtype=x.dtype)
         mask = torch.zeros(NMAX, dtype=x.dtype)
@@ -154,7 +158,7 @@ def pytorch_dense_kwargs(fan_in):
     }
 
 
-def build_model(nmax=NMAX, in_dim=len(INPUT_FEATURES), hidden_dim=64):
+def build_model(nmax=NMAX, in_dim=len(INPUT_FEATURES), hidden_dim=16):
     x_input = keras.Input(shape=(nmax, in_dim), name="x")
     mask_input = keras.Input(shape=(nmax,), dtype="bool", name="mask")
 
@@ -367,7 +371,7 @@ def main():
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max_files", type=int, default=10)
-    parser.add_argument("--hidden_dim", type=int, default=64)
+    parser.add_argument("--hidden_dim", type=int, default=16)
     parser.add_argument("--loss_type", choices=["huber", "mse", "mae", "weighted_huber"], default="weighted_huber")
     parser.add_argument("--pos_weight", type=float, default=9.0)
     parser.add_argument("--pos_weight_threshold", type=float, default=0.05)
