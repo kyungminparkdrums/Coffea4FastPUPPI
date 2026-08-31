@@ -194,6 +194,17 @@ def plot_response_2d(
         pred = pred[mask]
         target = target[mask]
 
+    # Keep only points that can actually enter the displayed histogram
+    range_mask = (
+        (target >= xlim[0])
+        & (target <= xlim[1])
+        & (pred >= ylim[0])
+        & (pred <= ylim[1])
+    )
+
+    pred = pred[range_mask]
+    target = target[range_mask]
+
     plt.figure(figsize=(6, 5))
 
     plt.hist2d(
@@ -375,6 +386,12 @@ def main():
         default=None,
     )
 
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Only make the inclusive target-vs-regressed 2D plot",
+    )
+
     args = parser.parse_args()
 
     run_dir = args.run
@@ -382,6 +399,19 @@ def main():
     plot_dir = make_plot_dir(run_dir)
 
     pred, target, center_pt, center_eta = load_outputs(run_dir)
+
+    # Check only the 2D scatter plot (for quick plotting)
+    pred, target, center_pt, center_eta = load_outputs(run_dir)
+
+    if args.quick:
+        plot_response_2d(
+            pred,
+            target,
+            plot_dir,
+            "response_2d.png",
+            "Target vs. regressed",
+        )
+        return
 
     # -------------------------------------------------
     # Loss history

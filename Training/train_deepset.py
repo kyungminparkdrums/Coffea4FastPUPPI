@@ -11,9 +11,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset
-from torch_geometric.loader import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
+
+# Upper bound on particle multiplicity near the neutral
+NMAX = 32
 
 # Dataset can contain a superset of features, but when we run the training some features can be commented out.
 INPUT_FEATURES = [
@@ -46,7 +49,7 @@ class BestPuppiDataset(Dataset):
     def __init__(self, pattern: str, max_files=10):
         files = sorted(glob.glob(pattern))
         random.shuffle(files)
-        self.files = files[:max_files] # at the moment each dataset contains 50k neutrals, so 500k in total if 10 files
+        self.files = files[:max_files]  # each dataset currently contains ~50k neutrals
 
         print("len(self.files)", len(self.files))
         print("Preloading dataset...")
@@ -67,7 +70,7 @@ class BestPuppiDataset(Dataset):
                 if self.metadata is None:
                     self.metadata = metadata
                     self.feature_names = feature_names
-                elif feature_names != self.feature_names: # some protection boh
+                elif feature_names != self.feature_names:
                     raise RuntimeError(
                         f"Feature-name mismatch in {f}\n"
                         f"existing: {self.feature_names}\n"
@@ -75,13 +78,14 @@ class BestPuppiDataset(Dataset):
                     )
             else:
                 graphs = payload
-                metadata = {}
-                feature_names = None
 
             self.data.extend(graphs)
             print(f"Loaded {f}: {len(graphs)} graphs in {time.time() - t0:.1f} s")
 
-        print(f"Loaded {len(self.data)} graphs from {len(self.files)} files") # check if there's some I/O bottleneck bc sometimes it takes forever
+        print(f"Loaded {len(self.data)} graphs from {len(self.files)} files")
+
+        if len(self.data) == 0:
+            raise RuntimeError(f"No graphs were loaded from pattern: {pattern}")
 
         if self.feature_names is None:
             in_dim = self.data[0].x.shape[1]
@@ -99,13 +103,47 @@ class BestPuppiDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return self.data[idx]
+        data = self.data[idx]
+
+        x = data.x
+        is_center_idx = self.feature_names.index("is_center")
+        center_mask = x[:, is_center_idx] > 0.5
+        n_centers = center_mask.sum().item()
+
+        if n_centers != 1:
+            raise RuntimeError(f"Expected exactly one center, got {n_centers}")
+
+        center_idx_local = torch.where(center_mask)[0].item()
+
+        # Center first, then all other particles in original order
+        other_idx = torch.arange(x.size(0), dtype=torch.long)
+        other_idx = other_idx[other_idx != center_idx_local]
+        order = torch.cat([torch.tensor([center_idx_local], dtype=torch.long), other_idx])
+        x = x[order]
+
+        n = x.size(0)
+
+        # Deliberately do not truncate: fail if NMAX is insufficient.
+        if n > NMAX:
+            raise RuntimeError(f"Graph has {n} particles, exceeds NMAX={NMAX}")
+
+        x_fixed = torch.zeros(NMAX, x.size(1), dtype=x.dtype)
+        mask = torch.zeros(NMAX, dtype=x.dtype)
+        x_fixed[:n] = x
+        mask[:n] = 1.0
+
+        return {
+            "x": x_fixed,
+            "mask": mask,
+            "y": data.y,
+            "event_idx": data.event_idx,
+            "center_idx": data.center_idx,
+        }
 
 
 class DeepSetRegressor(nn.Module):
-    def __init__(self, in_dim, hidden_dim=256, is_center_idx=-1):
+    def __init__(self, in_dim, hidden_dim=256):
         super().__init__()
-        self.is_center_idx = is_center_idx
 
         self.phi = nn.Sequential(
             nn.Linear(in_dim, hidden_dim),
@@ -117,35 +155,34 @@ class DeepSetRegressor(nn.Module):
         )
 
         self.rho = nn.Sequential(
-            nn.Linear(hidden_dim * 3, hidden_dim),
-            nn.LayerNorm(hidden_dim),
+            nn.Linear(hidden_dim, hidden_dim),
+            #nn.Linear(hidden_dim * 3, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1),
         )
 
-    def forward(self, data):
-        x, batch = data.x, data.batch
-        h = self.phi(x)
 
-        num_graphs = int(batch.max().item()) + 1
+    def forward(self, x, mask):
+        B, N, Fdim = x.shape
 
-        h_sum = torch.zeros(num_graphs, h.size(1), device=h.device, dtype=h.dtype)
-        h_sum = h_sum.index_add(0, batch, h)
+        valid = mask.bool()
+        x_valid = x[valid]
 
-        counts = torch.bincount(batch, minlength=num_graphs).to(h.dtype)
-        h_mean = h_sum / counts.unsqueeze(1).clamp(min=1.0)
+        h_valid = self.phi(x_valid)
 
-        center_mask = x[:, self.is_center_idx] > 0.5
-        num_centers = torch.bincount(batch[center_mask], minlength=num_graphs)
+        h = torch.zeros(B, N, h_valid.size(1), device=x.device, dtype=h_valid.dtype)
+        h[valid] = h_valid
 
-        if not torch.all(num_centers == 1):
-            raise RuntimeError(f"Expected exactly one center per graph, got {num_centers}")
+        mask_f = mask.unsqueeze(-1).to(h.dtype)
 
-        h_center = h[center_mask]
-        h_out = torch.cat([h_sum, h_mean, h_center], dim=1)
+        h_sum = h.sum(dim=1)
+        counts = mask_f.sum(dim=1).clamp(min=1.0)
+        h_mean = h_sum / counts
+        h_center = h[:, 0, :]
 
+        h_out = h_mean
+        #h_out = torch.cat([h_sum, h_mean, h_center], dim=1)
         return self.rho(h_out).view(-1)
-
 
 def set_seed(seed):
     random.seed(seed)
@@ -182,7 +219,6 @@ def apply_output_activation(raw, activation="softplus"):
 
 
 def default_feature_names(in_dim):
-    # if working with "old dataset" that doesn't contain metadata of feature names in the dataset; just infer boh
     if in_dim == 15:
         return [
             "log_pt", "slog_px", "slog_py", "charge", "nnvtx", "puppiWeight",
@@ -202,8 +238,8 @@ def default_feature_names(in_dim):
 
 def build_feature_indices(dataset_feature_names, input_features):
     feature_to_idx = {name: i for i, name in enumerate(dataset_feature_names)}
-
     missing = [f for f in input_features if f not in feature_to_idx]
+
     if missing:
         raise RuntimeError(
             "Requested input features are missing from dataset metadata:\n"
@@ -214,81 +250,27 @@ def build_feature_indices(dataset_feature_names, input_features):
     return [feature_to_idx[f] for f in input_features]
 
 
-def select_features(data, feature_idx):
-    data.x = data.x[:, feature_idx]
-    return data
-
-
-def global_shift_penalty(pred): # doesn't seem to work :( 
+def global_shift_penalty(pred):
     return pred.mean()
 
 
-def mse_penalty(pred, target):  # log ratio penalty seems to work much better than this
-    return torch.mean((pred - target) ** 2)
-
-
-# Tried bunch of different log ratio penalty term to see if the "global shift" goes away
-def centered_log_ratio_penalty(pred, target, eps=1e-3, zero_thr=0.05):
-    pos_mask = target > zero_thr
-    loss_ratio = torch.zeros_like(target)
-
-    if pos_mask.sum() == 0:
-        return loss_ratio
-
-    log_ratio = torch.log(pred.clamp_min(0.0) + eps) - torch.log(target + eps)
-    pos_log_ratio = log_ratio[pos_mask]
-    centered = pos_log_ratio - pos_log_ratio.mean()
-
-    loss_ratio[pos_mask] = centered.pow(2)
-    return loss_ratio
-
-
-def under_log_ratio_penalty(pred, target, eps=1e-3, zero_thr=0.05):
-    pos_mask = target > zero_thr
-    loss_ratio = torch.zeros_like(target)
-
-    if pos_mask.sum() == 0:
-        return loss_ratio
-
-    log_ratio = torch.log(pred.clamp_min(0.0) + eps) - torch.log(target + eps)
-    loss_ratio[pos_mask] = F.relu(-log_ratio[pos_mask]).pow(2)
-
-    return loss_ratio
-
-
-def selective_under_log_penalty(pred, target, *, eps=1e-3, target_thr=0.05, ratio_floor=0.5):
-    pos_mask = target > target_thr
-
-    if pos_mask.sum() == 0:
-        return pred.new_tensor(0.0)
-
-    pred_pos = pred[pos_mask].clamp_min(0.0)
-    target_pos = target[pos_mask]
-
-    log_ratio = torch.log(pred_pos + eps) - torch.log(target_pos + eps)
-    margin = math.log(ratio_floor)
-    under_violation = F.relu(margin - log_ratio)
-
-    return under_violation.pow(2).mean()
-
-# Main loss function
 def puppi_loss(
     pred,
     target,
     loss_type="weighted_huber",
-    alpha=1.0,                 # this controls the log-ratio penalty term
-    mse_penalty_alpha=0.0,     # if using MSE penalty term
-    global_shift_alpha=0.0,    # if using "global shift" penalty term in addition to log ratio term 
-    eps=1e-3,                  # some tiny value to avoid 0 in the denominator
-    zero_thr=0.05,             # a small threshold to decide what to consider zero-target or not
+    alpha=1.0,
+    mse_penalty_alpha=0.0,
+    global_shift_alpha=0.0,
+    eps=1e-3,
+    zero_thr=0.05,
     raw=None,
-    pos_weight=9.0,            # a value that controls the weighted huber (flatten out by target distribution)
-    pos_weight_threshold=0.05, # what to consider zero / non-zero
+    pos_weight=9.0,
+    pos_weight_threshold=0.05,
 ):
     if loss_type == "huber":
         loss_abs = F.huber_loss(pred, target, reduction="none")
 
-    elif loss_type == "weighted_huber": # this is the thing that works the best for now
+    elif loss_type == "weighted_huber":
         loss_abs = F.huber_loss(pred, target, reduction="none")
 
         weight = torch.ones_like(target)
@@ -308,10 +290,10 @@ def puppi_loss(
 
     loss = loss_abs.mean()
 
-    if mse_penalty_alpha > 0.0: # this didn't seem to work well
+    if mse_penalty_alpha > 0.0:
         loss = loss + mse_penalty_alpha * torch.mean((pred - target) ** 2)
 
-    # what works best for now : plain symmetric log-ratio MSE on positive targets
+    # Plain symmetric log-ratio MSE on positive targets.
     if alpha > 0.0:
         pos_mask = target > zero_thr
 
@@ -321,10 +303,8 @@ def puppi_loss(
 
             log_ratio = torch.log(pred_pos) - torch.log(target_pos)
             loss_logratio = torch.mean(log_ratio ** 2)
-
             loss = loss + alpha * loss_logratio
 
-    # Kept for future messing-around, disabled by default
     if global_shift_alpha > 0.0:
         loss = loss + global_shift_alpha * global_shift_penalty(pred)
 
@@ -336,8 +316,8 @@ def compute_diagnostic_metrics(pred, target, eps=1e-3, zero_thr=0.05, pred_thr=0
     target = np.asarray(target)
 
     err = pred - target
-
     metrics = {}
+
     metrics["mse"] = float(np.mean(err ** 2))
     metrics["mae"] = float(np.mean(np.abs(err)))
 
@@ -383,47 +363,17 @@ def compute_diagnostic_metrics(pred, target, eps=1e-3, zero_thr=0.05, pred_thr=0
     return metrics
 
 
-def extract_center_feature(data, feature_idx, is_center_idx):
-    x, batch = data.x, data.batch
-    center_mask = x[:, is_center_idx] > 0.5
-
-    num_graphs = int(batch.max().item()) + 1
-    num_centers = torch.bincount(batch[center_mask], minlength=num_graphs)
-
-    if not torch.all(num_centers == 1):
-        raise RuntimeError(f"Expected exactly one center per graph, got {num_centers}")
-
-    return x[center_mask, feature_idx]
-
-
-def extract_center_pt(data, feature_name_to_idx):
-    log_pt = extract_center_feature(
-        data,
-        feature_idx=feature_name_to_idx["log_pt"],
-        is_center_idx=feature_name_to_idx["is_center"],
-    )
-    return torch.exp(log_pt)
-
-
-def extract_center_eta(data, feature_name_to_idx):
-    return extract_center_feature(
-        data,
-        feature_idx=feature_name_to_idx["abs_eta"],
-        is_center_idx=feature_name_to_idx["is_center"],
-    )
-
-
 def train_epoch(model, loader, optimizer, device, args, feature_idx):
     model.train()
     total_loss = 0.0
 
     for data in tqdm(loader, desc="Train", leave=False):
-        data = data.to(device)
-        data = select_features(data, feature_idx)
+        x = data["x"][:, :, feature_idx].to(device)
+        mask = data["mask"].to(device)
+        target = data["y"].view(-1).to(device)
 
-        raw = model(data)
+        raw = model(x, mask)
         pred = apply_output_activation(raw, args.output_activation)
-        target = data.y.view(-1)
 
         loss = puppi_loss(
             pred,
@@ -457,14 +407,13 @@ def evaluate(model, loader, device, args, feature_idx, input_feature_name_to_idx
     losses = []
 
     for data in tqdm(loader, desc="Eval", leave=False):
-        data = data.to(device)
-        data = select_features(data, feature_idx)
+        x = data["x"][:, :, feature_idx].to(device)
+        mask = data["mask"].to(device)
+        target = data["y"].view(-1).to(device)
 
-        raw = model(data)
+        raw = model(x, mask)
         pred = apply_output_activation(raw, args.output_activation)
-
         pred_for_metrics = pred.clamp_min(0.0) if args.eval_clip_nonnegative else pred
-        target = data.y.view(-1)
 
         loss = puppi_loss(
             pred,
@@ -486,12 +435,13 @@ def evaluate(model, loader, device, args, feature_idx, input_feature_name_to_idx
         preds.append(pred_for_metrics.cpu())
         targets.append(target.cpu())
 
-        event_idx.append(data.event_idx.view(-1).cpu())
-        center_idx.append(data.center_idx.view(-1).cpu())
-        center_pt.append(extract_center_pt(data, input_feature_name_to_idx).cpu())
+        event_idx.append(data["event_idx"].view(-1).cpu())
+        center_idx.append(data["center_idx"].view(-1).cpu())
+
+        center_pt.append(torch.exp(x[:, 0, input_feature_name_to_idx["log_pt"]]).cpu())
 
         if "abs_eta" in input_feature_name_to_idx:
-            center_eta.append(extract_center_eta(data, input_feature_name_to_idx).cpu())
+            center_eta.append(x[:, 0, input_feature_name_to_idx["abs_eta"]].cpu())
 
     out = {
         "loss": float(np.mean(losses)),
@@ -518,7 +468,7 @@ def permutation_feature_importance(
     feature_idx,
     input_feature_names,
     max_batches=20,
-): # SHAF feature importance expects fixed number of features (i.e. same number of neutrals in a cone) so just use this instead
+):
     model.eval()
 
     baseline_losses = []
@@ -528,14 +478,14 @@ def permutation_feature_importance(
         if ibatch >= max_batches:
             break
 
-        cached_batches.append(data)
+        cached_batches.append({k: v.clone() for k, v in data.items()})
 
-        data = data.to(device)
-        data = select_features(data, feature_idx)
+        x = data["x"][:, :, feature_idx].to(device)
+        mask = data["mask"].to(device)
+        target = data["y"].view(-1).to(device)
 
-        raw = model(data)
+        raw = model(x, mask)
         pred = apply_output_activation(raw, args.output_activation)
-        target = data.y.view(-1)
 
         loss = puppi_loss(
             pred,
@@ -553,6 +503,9 @@ def permutation_feature_importance(
 
         baseline_losses.append(loss.item())
 
+    if len(baseline_losses) == 0:
+        raise RuntimeError("No batches available for permutation feature importance.")
+
     baseline_loss = float(np.mean(baseline_losses))
 
     results = []
@@ -566,25 +519,30 @@ def permutation_feature_importance(
                 "baseline_loss": baseline_loss,
                 "permuted_loss": np.nan,
                 "delta_loss": np.nan,
-                "note": "Skipped because permuting this feature breaks graph structure.",
+                "note": "Skipped because permuting this feature breaks the fixed center definition.",
             })
             continue
 
         perm_losses = []
 
         for data_cpu in cached_batches:
-            data = data_cpu.clone()
-            data.x = data.x.clone()
-            data = select_features(data, feature_idx)
+            x = data_cpu["x"][:, :, feature_idx].clone()
+            mask = data_cpu["mask"].clone()
+            target = data_cpu["y"].view(-1).to(device)
 
-            perm = torch.randperm(data.x.size(0))
-            data.x[:, ifeat] = data.x[perm, ifeat]
+            # Preserve padding: only permute this feature among valid particle rows.
+            valid = mask.bool()
+            feature_plane = x[:, :, ifeat]
+            values = feature_plane[valid].clone()
+            perm = torch.randperm(values.numel())
+            feature_plane[valid] = values[perm]
+            x[:, :, ifeat] = feature_plane
 
-            data = data.to(device)
+            x = x.to(device)
+            mask = mask.to(device)
 
-            raw = model(data)
+            raw = model(x, mask)
             pred = apply_output_activation(raw, args.output_activation)
-            target = data.y.view(-1)
 
             loss = puppi_loss(
                 pred,
@@ -612,11 +570,15 @@ def permutation_feature_importance(
             "delta_loss": perm_loss - baseline_loss,
         })
 
-    return sorted(results, key=lambda x: x["delta_loss"], reverse=True)
+    finite_results = [x for x in results if np.isfinite(x["delta_loss"])]
+    skipped_results = [x for x in results if not np.isfinite(x["delta_loss"])]
+    finite_results = sorted(finite_results, key=lambda x: x["delta_loss"], reverse=True)
+    return finite_results + skipped_results
 
 
 def main():
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--data", required=True)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch_size", type=int, default=1024)
@@ -626,8 +588,16 @@ def main():
     parser.add_argument("--max_files", type=int, default=10)
     parser.add_argument("--hidden_dim", type=int, default=256)
 
-    parser.add_argument("--output_activation", choices=["relu", "softplus", "identity"], default="softplus")
-    parser.add_argument("--loss_type", choices=["huber", "mse", "mae", "weighted_huber"], default="weighted_huber")
+    parser.add_argument(
+        "--output_activation",
+        choices=["relu", "softplus", "identity"],
+        default="softplus",
+    )
+    parser.add_argument(
+        "--loss_type",
+        choices=["huber", "mse", "mae", "weighted_huber"],
+        default="weighted_huber",
+    )
 
     parser.add_argument("--pos_weight", type=float, default=9.0)
     parser.add_argument("--pos_weight_threshold", type=float, default=0.05)
@@ -690,7 +660,6 @@ def main():
     model = DeepSetRegressor(
         in_dim=len(INPUT_FEATURES),
         hidden_dim=args.hidden_dim,
-        is_center_idx=input_feature_name_to_idx["is_center"],
     ).to(device)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
@@ -701,9 +670,13 @@ def main():
     config["input_features"] = INPUT_FEATURES
     config["feature_idx"] = feature_idx
     config["in_dim"] = len(INPUT_FEATURES)
-    config["model"] = "DeepSetRegressor_sum_mean_center"
+    config["nmax"] = NMAX
+    config["model"] = "DeepSetRegressor_fixedN_sum_mean_center"
     config["prediction"] = f"{args.output_activation}(raw)"
-    config["baseline"] = "softplus + weighted_huber(pos_weight=9) + plain log-ratio penalty(alpha=1)"
+    config["baseline"] = (
+        "softplus + weighted_huber(pos_weight=9) + "
+        "plain log-ratio penalty(alpha=1)"
+    )
     config["train_size"] = len(train_idx)
     config["val_size"] = len(val_idx)
     config["test_size"] = len(test_idx)
@@ -718,9 +691,23 @@ def main():
     print("Start training!")
 
     for epoch in range(1, args.epochs + 1):
-        train_loss = train_epoch(model, train_loader, optimizer, device, args, feature_idx)
+        train_loss = train_epoch(
+            model,
+            train_loader,
+            optimizer,
+            device,
+            args,
+            feature_idx,
+        )
 
-        val_out = evaluate(model, val_loader, device, args, feature_idx, input_feature_name_to_idx)
+        val_out = evaluate(
+            model,
+            val_loader,
+            device,
+            args,
+            feature_idx,
+            input_feature_name_to_idx,
+        )
         val_loss = val_out["loss"]
 
         diag = compute_diagnostic_metrics(
@@ -750,7 +737,10 @@ def main():
         )
 
         np.savez(os.path.join(run_dir, f"val_outputs_epoch{epoch}.npz"), **val_out)
-        np.savez(os.path.join(run_dir, "loss_history.npz"), **{k: np.array(v) for k, v in history.items()})
+        np.savez(
+            os.path.join(run_dir, "loss_history.npz"),
+            **{k: np.array(v) for k, v in history.items()},
+        )
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -759,14 +749,26 @@ def main():
             torch.save(model.state_dict(), os.path.join(run_dir, "model_best.pt"))
             np.savez(os.path.join(run_dir, "val_outputs_best.npz"), **val_out)
 
-        torch.save(model.state_dict(), os.path.join(run_dir, f"model_epoch{epoch}.pt"))
+        torch.save(
+            model.state_dict(),
+            os.path.join(run_dir, f"model_epoch{epoch}.pt"),
+        )
 
     print(f"Best epoch: {best_epoch} with val_loss={best_val_loss:.6f}")
 
     best_path = os.path.join(run_dir, "model_best.pt")
-    model.load_state_dict(torch.load(best_path, map_location=device, weights_only=True))
+    model.load_state_dict(
+        torch.load(best_path, map_location=device, weights_only=True)
+    )
 
-    test_out = evaluate(model, test_loader, device, args, feature_idx, input_feature_name_to_idx)
+    test_out = evaluate(
+        model,
+        test_loader,
+        device,
+        args,
+        feature_idx,
+        input_feature_name_to_idx,
+    )
 
     test_diag = compute_diagnostic_metrics(
         test_out["pred"],
@@ -803,10 +805,17 @@ def main():
 
         print("Top feature importances:")
         for item in fi[:15]:
-            print(
-                f"  {item['feature_index']:2d} {item['feature']:15s} "
-                f"delta_loss={item['delta_loss']:.6f}"
-            )
+            if np.isfinite(item["delta_loss"]):
+                print(
+                    f"  {item['feature_index']:2d} "
+                    f"{item['feature']:15s} "
+                    f"delta_loss={item['delta_loss']:.6f}"
+                )
+            else:
+                print(
+                    f"  {item['feature_index']:2d} "
+                    f"{item['feature']:15s} skipped"
+                )
 
 
 if __name__ == "__main__":
