@@ -16,23 +16,25 @@ from tqdm import tqdm
 
 
 # Upper bound on particle multiplicity near the neutral
-NMAX = 32
+NMAX = 24
 
 # Dataset can contain a superset of features, but when we run the training some features can be commented out.
 INPUT_FEATURES = [
     "log_pt",
     "slog_px",
     "slog_py",
-    "abs_eta",
+    #"abs_eta",
+    "eta",
+    "phi",
     "charge",
     "nnvtx",
-    # "vz",
+    "vz",
     "dxy",
     "z0",
-    "puppiWeight",
-    # "idProbPu",
-    # "idProbEm",
-    # "idProbPi",
+    #"puppiWeight",
+    "idProbPu",
+    "idProbEm",
+    "idProbPi",
     "pdg_abs_211",
     "pdg_abs_130",
     "pdg_abs_22",
@@ -125,7 +127,9 @@ class BestPuppiDataset(Dataset):
 
         # Deliberately do not truncate: fail if NMAX is insufficient.
         if n > NMAX:
-            raise RuntimeError(f"Graph has {n} particles, exceeds NMAX={NMAX}")
+            #raise RuntimeError(f"Graph has {n} particles, exceeds NMAX={NMAX}")
+            x = x[:NMAX]
+            n = NMAX
 
         x_fixed = torch.zeros(NMAX, x.size(1), dtype=x.dtype)
         mask = torch.zeros(NMAX, dtype=x.dtype)
@@ -142,7 +146,7 @@ class BestPuppiDataset(Dataset):
 
 
 class DeepSetRegressor(nn.Module):
-    def __init__(self, in_dim, hidden_dim=256):
+    def __init__(self, in_dim, hidden_dim=8):
         super().__init__()
 
         self.phi = nn.Sequential(
@@ -219,6 +223,7 @@ def apply_output_activation(raw, activation="softplus"):
 
 
 def default_feature_names(in_dim):
+    """
     if in_dim == 15:
         return [
             "log_pt", "slog_px", "slog_py", "charge", "nnvtx", "puppiWeight",
@@ -232,8 +237,10 @@ def default_feature_names(in_dim):
             "pdg_abs_211", "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13",
             "deta", "dphi", "dr", "is_center",
         ]
+    """
 
-    return [f"feature_{i}" for i in range(in_dim)]
+    return INPUT_FEATURES
+    #return [f"feature_{i}" for i in range(in_dim)]
 
 
 def build_feature_indices(dataset_feature_names, input_features):
@@ -252,7 +259,6 @@ def build_feature_indices(dataset_feature_names, input_features):
 
 def global_shift_penalty(pred):
     return pred.mean()
-
 
 def puppi_loss(
     pred,
@@ -310,6 +316,45 @@ def puppi_loss(
 
     return loss
 
+'''
+def puppi_loss(
+    pred,
+    target,
+    loss_type="weighted_huber",
+    alpha=1.0,
+    mse_penalty_alpha=0.0,
+    global_shift_alpha=0.0,
+    eps=1e-3,
+    zero_thr=0.05,
+    raw=None,
+    pos_weight=9.0,
+    pos_weight_threshold=0.05,
+):
+    if loss_type == "huber":
+        loss_abs = F.huber_loss(pred, target, reduction="none")
+
+    elif loss_type == "weighted_huber":
+        loss_abs = F.huber_loss(pred, target, reduction="none")
+
+        weight = torch.ones_like(target)
+        pos_mask = target > pos_weight_threshold
+        weight[pos_mask] = pos_weight
+
+        loss_abs = loss_abs * weight
+
+    elif loss_type == "mse":
+        loss_abs = F.mse_loss(pred, target, reduction="none")
+
+    elif loss_type == "mae":
+        loss_abs = F.l1_loss(pred, target, reduction="none")
+
+    else:
+        raise ValueError(f"Unknown loss_type: {loss_type}")
+
+    loss = loss_abs.mean()
+
+    return loss
+'''
 
 def compute_diagnostic_metrics(pred, target, eps=1e-3, zero_thr=0.05, pred_thr=0.05):
     pred = np.asarray(pred)
@@ -440,8 +485,8 @@ def evaluate(model, loader, device, args, feature_idx, input_feature_name_to_idx
 
         center_pt.append(torch.exp(x[:, 0, input_feature_name_to_idx["log_pt"]]).cpu())
 
-        if "abs_eta" in input_feature_name_to_idx:
-            center_eta.append(x[:, 0, input_feature_name_to_idx["abs_eta"]].cpu())
+        #if "abs_eta" in input_feature_name_to_idx:
+        center_eta.append(x[:, 0, input_feature_name_to_idx["eta"]].cpu())
 
     out = {
         "loss": float(np.mean(losses)),
@@ -451,10 +496,11 @@ def evaluate(model, loader, device, args, feature_idx, input_feature_name_to_idx
         "event_idx": torch.cat(event_idx).numpy(),
         "center_idx": torch.cat(center_idx).numpy(),
         "center_pt": torch.cat(center_pt).numpy(),
+        "center_eta": torch.cat(center_eta).numpy(),
     }
 
-    if len(center_eta) > 0:
-        out["center_eta"] = torch.cat(center_eta).numpy()
+    #if len(center_eta) > 0:
+    #    out["center_eta"] = torch.cat(center_eta).numpy()
 
     return out
 
@@ -586,7 +632,7 @@ def main():
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max_files", type=int, default=10)
-    parser.add_argument("--hidden_dim", type=int, default=256)
+    parser.add_argument("--hidden_dim", type=int, default=8)
 
     parser.add_argument(
         "--output_activation",
