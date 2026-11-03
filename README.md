@@ -12,9 +12,9 @@ git cms-addpkg L1Trigger/TrackTrigger
 git cms-addpkg SimTracker/TrackTriggerAssociation
 git cms-addpkg L1Trigger/VertexFinder
 
-git cms-checkout-topic -u friti:new_G_branches_and_nnvtx_on
+git cms-checkout-topic -u kyungminparkdrums:151X_puppi_as_pf_hgcId_wp_tuned
 
-git clone git@github.com:elfontan/FastPUPPI.git -b puppiML_target
+git clone git@github.com:kyungminparkdrums/FastPUPPI.git -b puppiml_addvars
 ```
 
 It includes 
@@ -84,7 +84,7 @@ Preliminary training on GNN (EdgeConv, GravNet) can be found in the `Training` r
     ```
     - To add more inputs, change this script (once the branches are available on the ntuples)
     - Likewise, you can turn off some inputs from the script
-    - Some pre-processed inputs (50000 neutral cones per pt file) with input feature metadata can be found here: `/eos/cms/store/group/cmst3/group/l1tr/kypark/puppi_training_neutral_dr0p3_includeTrk/`
+    - Some pre-processed inputs (50000 neutral cones per pt file) with input feature metadata can be found here: `/eos/cms/store/group/cmst3/group/l1tr/kypark/mlpuppi_training_ntuples_with_hgcId/`
 
     2.1 Print some dataset
     ```bash
