@@ -15,10 +15,10 @@ from torch_geometric.data import Data
 # -------------------------------------------------
 
 SKIP_FEATURES = [
-    "vz",
-    "idProbPu",
-    "idProbEm",
-    "idProbPi",
+    #"vz",
+    #"idProbPu",
+    #"idProbEm",
+    #"idProbPi",
 ]
 
 
@@ -41,9 +41,9 @@ BRANCH_MAP = {
 
     "puppiWeight": "L1PuppiCands_puppiWeight",
 
-    "idProbPu": "L1PuppiCands_idProbPu",
-    "idProbEm": "L1PuppiCands_idProbEm",
-    "idProbPi": "L1PuppiCands_idProbPi",
+    "idProbPu": "L1PuppiCands_hgcIdPu",
+    "idProbEm": "L1PuppiCands_hgcIdEm",
+    "idProbPi": "L1PuppiCands_hgcIdPi",
 
     "genPtSum0p2": "L1PuppiCands_genPtSum0p2",
     "recoDen_seedPlusAll0p2": "L1PuppiCands_recoDen_seedPlusAll0p2",

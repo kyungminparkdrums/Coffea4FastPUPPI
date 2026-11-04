@@ -237,6 +237,21 @@ def default_feature_names(in_dim):
             "pdg_abs_211", "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13",
             "deta", "dphi", "dr", "is_center",
         ]
+    if in_dim == 19:
+        return [
+            "log_pt", "slog_px", "slog_py", "eta", "phi", "charge", "nnvtx", "vz", "dxy", "z0",
+            "idProbPu", "idProbEm", "idProbPi", 
+            "pdg_abs_211", "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13",
+            "is_center",
+        ]
+
+    if in_dim == 22:
+        return [
+            "log_pt", "slog_px", "slog_py", "eta", "phi", "charge", "nnvtx", "vz", "dxy", "z0",
+            "idProbPu", "idProbEm", "idProbPi", 
+            "pdg_abs_211", "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13",
+            "deta", "dphi", "dr", "is_center",
+        ]
     """
 
     return INPUT_FEATURES
