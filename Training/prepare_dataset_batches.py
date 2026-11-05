@@ -58,13 +58,17 @@ FEATURE_NAMES = [
     "log_pt",
     "slog_px",
     "slog_py",
+    "eta",
+    "phi",
     "abs_eta",
+    "abs_phi",
 
     "charge",
 
     "nnvtx",
     "vz",
     "dxy",
+    "log_dxy",
     "z0",
 
     "puppiWeight",
@@ -226,6 +230,7 @@ def main():
         slog_py = np.sign(py) * np.log(np.abs(py) + 1e-6)
 
         abs_eta = np.abs(etas)
+        abs_phi = np.abs(phis)
 
         hgcal_mask = ((abs_eta >= 1.5) & (abs_eta <= 2.4))
 
@@ -237,7 +242,10 @@ def main():
             "log_pt": log_pt,
             "slog_px": slog_px,
             "slog_py": slog_py,
+            "eta": etas.astype(np.float32),
+            "phi": phis.astype(np.float32),
             "abs_eta": abs_eta,
+            "abs_phi": abs_phi,
             "charge": charges.astype(np.float32),
         }
 
@@ -254,6 +262,9 @@ def main():
 
             "dxy": lambda:
                 ak.to_numpy(arrays[BRANCH_MAP["dxy"]][iev]).astype(np.float32),
+
+            "log_dxy": lambda:
+                np.log(np.clip(np.abs(ak.to_numpy(arrays[BRANCH_MAP["dxy"]][iev]).astype(np.float32)), 1e-6, None)),
 
             "z0": lambda:
                 ak.to_numpy(arrays[BRANCH_MAP["z0"]][iev]).astype(np.float32),
@@ -316,6 +327,7 @@ def main():
         # -------------------------------------------------
 
         centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0))[0]
+        #centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0) & (abs_eta > 1.5) & (abs_eta < 3.0))[0]
 
         # -------------------------------------------------
         # Build graph around each center
