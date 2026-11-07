@@ -1,8 +1,19 @@
 import os
 import json
-
 import awkward as ak
 import numpy as np
+
+# Select a matching checkpoint/config pair here (one model per analyzer run).
+# The JSON controls input order, neighborhood dr, hidden_dim, activation and nmax.
+# Set this directory to another training run to evaluate a different model.
+_DEFAULT_RUN_DIR = "/home/phys/kyungmip/MLPUPPI/Coffea4FastPUPPI/Training/runs/run_20260916_085421"
+ML_MODEL_PATH = os.environ.get(
+    "ML_PUPPI_MODEL", os.path.join(_DEFAULT_RUN_DIR, "model_best.pt")
+)
+ML_CONFIG_PATH = os.environ.get(
+    "ML_PUPPI_CONFIG", os.path.join(os.path.dirname(ML_MODEL_PATH), "config.json")
+)
+
 
 # Branch mapping
 PUPPI_COLLECTION = "L1PuppiCands"
@@ -36,19 +47,6 @@ COLLECTION_FIELD_MAP = {
 # Target branches
 GENTARGET_GEN_SUM_FIELD = "genPtSum0p2"
 GENTARGET_RECO_SUM_FIELD = "recoDen_seedPlusAll0p2"
-
-# Fetch trained ML model
-runs = "run_20260916_085421"
-#runs = "run_20260915_125708"
-# run_20260831_072129
-
-_DEFAULT_RUN_DIR = f"/home/phys/kyungmip/MLPUPPI/Coffea4FastPUPPI/Training/runs/{runs}"
-ML_MODEL_PATH = os.environ.get(
-    "ML_PUPPI_MODEL", os.path.join(_DEFAULT_RUN_DIR, "model_best.pt")
-)
-ML_CONFIG_PATH = os.environ.get(
-    "ML_PUPPI_CONFIG", os.path.join(os.path.dirname(ML_MODEL_PATH), "config.json")
-)
 
 # ML env setup
 ML_DEVICE = os.environ.get("ML_PUPPI_DEVICE", "cuda")
@@ -102,23 +100,6 @@ JET_MAX_BUILD = 16
 JET_MAX_KEEP = 12
 JET_MIN_PT = 5.0
 
-DEFAULT_DATASET_FEATURE_NAMES = [
-    "log_pt", "slog_px", "slog_py", "eta", "phi", "charge", "nnvtx", "vz",
-    "dxy", "z0", "idProbPu", "idProbEm", "idProbPi", "pdg_abs_211",
-    "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13", "deta", "dphi",
-    "dr", "is_center",
-]
-
-DEFAULT_INPUT_FEATURES = [
-    "log_pt", "slog_px", "slog_py", "eta", "phi", "charge", "nnvtx", "vz",
-    "dxy", "z0", "idProbPu", "idProbEm", "idProbPi", "pdg_abs_211",
-    "pdg_abs_130", "pdg_abs_22", "pdg_abs_11", "pdg_abs_13", "deta", "dphi",
-    "dr", "is_center",
-]
-
-DEFAULT_DR = 0.3
-DEFAULT_MAX_NODES = 24
-DEFAULT_HIDDEN_DIM = 16
 DEFAULT_OUTPUT_ACTIVATION = "softplus"
 
 _ML_MODEL = None
@@ -373,54 +354,70 @@ def _wrap_phi(dphi):
 
 
 def _load_ml_config():
-    cfg = {}
-    if ML_CONFIG_PATH and os.path.exists(ML_CONFIG_PATH):
-        with open(ML_CONFIG_PATH) as f:
-            cfg = json.load(f)
-
-    dataset_feature_names = cfg.get("dataset_feature_names", None)
+    # Do not silently evaluate a model with fallback features or radius.
+    if not ML_CONFIG_PATH or not os.path.isfile(ML_CONFIG_PATH):
+        raise FileNotFoundError(f"ML training config not found: {ML_CONFIG_PATH}")
+    with open(ML_CONFIG_PATH) as f:
+        cfg = json.load(f)
+    metadata = cfg.get("dataset_metadata", {})
+    dataset_feature_names = cfg.get("dataset_feature_names")
     if dataset_feature_names is None:
-        dataset_feature_names = cfg.get(
-            "dataset_metadata", {}
-        ).get("feature_names", DEFAULT_DATASET_FEATURE_NAMES)
-
-    input_features = cfg.get("input_features", DEFAULT_INPUT_FEATURES)
+        dataset_feature_names = metadata.get("feature_names")
+    input_features = cfg.get("input_features")
+    for label, names in (("dataset_feature_names", dataset_feature_names),
+                         ("input_features", input_features)):
+        if (not isinstance(names, list) or not names
+                or not all(isinstance(name, str) for name in names)
+                or len(set(names)) != len(names)):
+            raise ValueError(f"{label} must be a nonempty list of unique feature names")
 
     name_to_idx = {name: i for i, name in enumerate(dataset_feature_names)}
     missing = [name for name in input_features if name not in name_to_idx]
     if missing:
-        raise RuntimeError(
-            "ML input features are missing from dataset metadata: "
-            f"{missing}; available={dataset_feature_names}"
+        raise ValueError(f"ML input features missing from dataset metadata: {missing}")
+    # Build the feature selection from names, in the model's declared order.
+    # Never treat the dataset's column order as the model's input order.
+    feature_idx = [name_to_idx[name] for name in input_features]
+    saved_idx = cfg.get("feature_idx")
+    if saved_idx is not None and saved_idx != feature_idx:
+        raise ValueError(
+            "feature_idx disagrees with input_features/dataset_feature_names; "
+            "use the unmodified config.json from the checkpoint's training run"
         )
-
-    feature_idx = cfg.get("feature_idx", None)
-    if feature_idx is None:
-        feature_idx = [name_to_idx[name] for name in input_features]
-
-    if len(feature_idx) != len(input_features):
-        raise RuntimeError(
-            "feature_idx and input_features have different lengths: "
-            f"{len(feature_idx)} != {len(input_features)}"
-        )
-
     in_dim = int(cfg.get("in_dim", len(input_features)))
     if in_dim != len(input_features):
-        raise RuntimeError(
-            "Saved in_dim does not match input_features: "
-            f"{in_dim} != {len(input_features)}"
-        )
+        raise ValueError(f"in_dim={in_dim} does not match {len(input_features)} input features")
 
+    # Training JSON uses dataset_metadata.dr; also accept a top-level dr.
+    # dr is needed even when it is not a model input feature.
+    dr_value = cfg.get("dr", metadata.get("dr"))
+    if dr_value is None:
+        raise ValueError("Training config must specify dataset_metadata.dr or dr")
+    dr = float(dr_value)
+    if not np.isfinite(dr) or dr <= 0:
+        raise ValueError(f"Neighborhood dr must be finite and positive, got {dr}")
+    if ("dr" in cfg and "dr" in metadata
+            and not np.isclose(dr, float(metadata["dr"]), rtol=0, atol=1e-12)):
+        raise ValueError("Conflicting dr values in config and dataset_metadata")
+
+    # Use training nmax, never dataset_metadata.max_nodes.
+    for key in ("nmax", "hidden_dim"):
+        value = cfg.get(key)
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise ValueError(f"Training config must specify a positive integer {key}")
+    nmax = cfg["nmax"]
+    hidden_dim = cfg["hidden_dim"]
     return {
         "dataset_feature_names": dataset_feature_names,
         "input_features": input_features,
         "feature_idx": np.asarray(feature_idx, dtype=np.int64),
         "in_dim": in_dim,
-        "hidden_dim": int(cfg.get("hidden_dim", DEFAULT_HIDDEN_DIM)),
+        "hidden_dim": hidden_dim,
         "output_activation": cfg.get("output_activation", DEFAULT_OUTPUT_ACTIVATION),
-        "dr": float(cfg.get("dataset_metadata", {}).get("dr", DEFAULT_DR)),
-        "max_nodes": int(cfg.get("nmax", DEFAULT_MAX_NODES)),
+        "dr": dr,
+        "nmax": nmax,
     }
+
 
 
 def _apply_output_activation(raw, activation):
@@ -451,7 +448,7 @@ def _load_ml_model():
     import torch.nn as nn
 
     class DeepSetRegressor(nn.Module):
-        def __init__(self, in_dim, hidden_dim=DEFAULT_HIDDEN_DIM):
+        def __init__(self, in_dim, hidden_dim):
             super().__init__()
 
             self.phi = nn.Sequential(
@@ -578,13 +575,13 @@ def _predict_graphs_in_batches(model, info, graph_arrays):
         graphs = graph_arrays[start:start + batch_graphs]
 
         n_graphs = len(graphs)
-        max_nodes = info["max_nodes"]
+        nmax = info["nmax"]
         in_dim = info["in_dim"]
-        x_np = np.zeros((n_graphs, max_nodes, in_dim), dtype=np.float32)
-        mask_np = np.zeros((n_graphs, max_nodes), dtype=np.float32)
+        x_np = np.zeros((n_graphs, nmax, in_dim), dtype=np.float32)
+        mask_np = np.zeros((n_graphs, nmax), dtype=np.float32)
 
         for i, graph in enumerate(graphs):
-            n_nodes = min(len(graph), max_nodes)
+            n_nodes = min(len(graph), nmax)
             x_np[i, :n_nodes] = graph[:n_nodes]
             mask_np[i, :n_nodes] = 1.0
 
@@ -613,7 +610,7 @@ def _ml_neutral_weight_array(puppi):
     dataset_feature_names = info["dataset_feature_names"]
     feature_idx = info["feature_idx"]
     dr_cut = float(info["dr"])
-    max_nodes = int(info["max_nodes"])
+    nmax = int(info["nmax"])
 
     feature_branches = {
         name: COLLECTION_FIELD_MAP[name]
@@ -779,7 +776,7 @@ def _ml_neutral_weight_array(puppi):
             # Match BestPuppiDataset.__getitem__: center first, followed by
             # other particles in their original graph order, then truncate.
             other_idx = idx[idx != center_idx]
-            idx = np.concatenate(([center_idx], other_idx))[:max_nodes]
+            idx = np.concatenate(([center_idx], other_idx))[:nmax]
 
             x_full = base[idx].copy()
 
