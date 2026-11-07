@@ -158,6 +158,7 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--input", required=True)
+    parser.add_argument("--region", type=str, default='all')
     parser.add_argument("--output_dir", required=True)
     parser.add_argument("--dr", type=float, default=0.3)
     parser.add_argument("--max_nodes", type=int, default=48)
@@ -325,9 +326,16 @@ def main():
         # -------------------------------------------------
         # Center neutral candidates
         # -------------------------------------------------
+    
+        if args.region == 'all':
+            centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0))[0]
+        elif args.region == 'barrel':
+            centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0) & (abs_eta < 1.4))[0]
+        elif args.region == 'hgcTk':
+            centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0) & (abs_eta > 1.5) & (abs_eta < 2.4))[0]
+        elif args.region == 'hgcNoTk':
+            centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0) & (abs_eta > 2.4) & (abs_eta < 3.0))[0]
 
-        centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0))[0]
-        #centers = np.where((charges == 0) & (pts >= 1.0) & (recoDen > 0) & (abs_eta > 1.5) & (abs_eta < 3.0))[0]
 
         # -------------------------------------------------
         # Build graph around each center
